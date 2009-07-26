@@ -64,7 +64,7 @@ column_sugar 'website.owner'
     };
 
 # サイト管理者による自己紹介文
-column_sugar 'website.isntroduction'
+column_sugar 'website.introduction'
     => varchar => {
     };
 
