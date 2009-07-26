@@ -68,11 +68,6 @@ column_sugar 'website.isntroduction'
     => varchar => {
     };
 
-# サイト管理者による自己紹介文
-column_sugar 'website.isntroduction'
-    => varchar => {
-    };
-
 # リンク集管理者（このアプリケーションの設置者）による紹介文
 column_sugar 'website.comment'
     => varchar => {
