@@ -19,7 +19,7 @@ use lib "$FindBin::Bin/../extlib";
 
 # This module is in application external library ({MYAPP}/extlib).
 # Add local library (ex. /virtual/{USERNAME}/local/lib) to @INC.
-use local::lib qq($ENV{DOCUMENT_ROOT}/../local/lib);
+use local::lib qq($ENV{DOCUMENT_ROOT}/../local);
 
 # Add application library ({MYAPP}/lib) to @INC.
 use FindBin::libs;
