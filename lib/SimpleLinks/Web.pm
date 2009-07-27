@@ -5,7 +5,7 @@ package SimpleLinks::Web;
 # class variables
 # ****************************************************************
 
-our $VERSION = '0.01';
+our $VERSION = '0.00_00';
 
 
 # ****************************************************************
@@ -16,9 +16,6 @@ use Ark;                    # automatically turn on strict & warnings
 
 __PACKAGE__->config(
     dbname          => undef,
-    # dbname          => $FindBin . '/',
-    # pod_namespace => 'Ark::Manual',
-    # site_title    => 'Ark 0.1 Documentation (DRAFT)',
 );
 
 __PACKAGE__->meta->make_immutable;

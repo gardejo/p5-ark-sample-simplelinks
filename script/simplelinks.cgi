@@ -67,7 +67,7 @@ __END__
 
 =head1 NAME
 
-simplelinks.cgi - CGI interface for SimpleLinks (p5-ark-sample-simplelinks)
+simplelinks.cgi - starter of SimpleLinks (p5-ark-sample-simplelinks) for CGI
 
 
 =head1 SYNOPSIS
@@ -86,8 +86,8 @@ In case of xrea.com and/or coreserver.jp, make directory tree like below:
         /lib      ... Local library. Deploy your favorite modules here.
     /public_html
     /{MYAPP}
-      /lib        ... Application library. Deploy MyApp modules here.
-        /MyApp
+      /lib        ... Application library. Deploy {MyApp} modules here.
+        /{MyApp}
       /extlib     ... Application external library. Deploy local::lib here.
 
 Loading resolution order is app-lib, local-lib, app-ext-lib, and default-libs.

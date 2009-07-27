@@ -34,7 +34,7 @@ use SimpleLinks::Schema::Column;
 
 
 # ****************************************************************
-# initializations : schemas
+# schemas
 # ****************************************************************
 
 # ================================================================
@@ -54,15 +54,15 @@ install_model website => schema {
     column      'common.created_on';
     column      'common.updated_on';
 
-    # その他
+    # その他の定義
     unique      'uri';
 
     # 別名カラム
-    alias_column common_created_on      => 'created_on';
-    alias_column common_updated_on      => 'updated_on';
+    alias_column common_created_on => 'created_on';
+    alias_column common_updated_on => 'updated_on';
 
     # 関係(relationships)
-    add_method  'category_ids' => sub {
+    add_method 'category_ids' => sub {
         return map {
             $_->category_id;
         } $_[0]->{model}->get(website_category => {
@@ -75,13 +75,13 @@ install_model website => schema {
         });
     };
 
-    add_method  'categories' => sub {
-        return $_[0]->{model}->lookup_multi(category =>
-            [($_[0]->category_ids)]
-        );
+    add_method 'categories' => sub {
+        return $_[0]->{model}->lookup_multi(category => [
+            $_[0]->category_ids
+        ]);
     };
 
-    add_method  'tag_ids' => sub {
+    add_method 'tag_ids' => sub {
         return map {
             $_->tag_id;
         } $_[0]->{model}->get(website_tag => {
@@ -94,14 +94,14 @@ install_model website => schema {
         });
     };
 
-    add_method  'tags' => sub {
-        return $_[0]->{model}->lookup_multi(tag =>
-            [($_[0]->tag_ids)]
-        );
+    add_method 'tags' => sub {
+        return $_[0]->{model}->lookup_multi(tag => [
+            $_[0]->tag_ids
+        ]);
     };
 
     # 更新日時の暗黙的な更新
-    add_method  'update_with_timestamp' => \&_update_with_timestamp;
+    add_method 'update_with_timestamp' => \&_update_with_timestamp;
 };
 
 # ================================================================
@@ -121,23 +121,21 @@ install_model category => schema {
     column      'common.updated_on';
 
     # 別名カラム
-    alias_column taxonomy_slug          => 'slug';
-    alias_column taxonomy_name          => 'name';
-    alias_column taxonomy_description   => 'description';
-    alias_column common_created_on      => 'created_on';
-    alias_column common_updated_on      => 'updated_on';
+    alias_column taxonomy_slug        => 'slug';
+    alias_column taxonomy_name        => 'name';
+    alias_column taxonomy_description => 'description';
+    alias_column common_created_on    => 'created_on';
+    alias_column common_updated_on    => 'updated_on';
 
     # 関係(relationships)
-    add_method  'parent' => sub {
-        return $_[0]->{model}->get(category => {
-            where => [
-                id => $_[0]->parent_id,
-            ],
-        });
+    add_method 'parent' => sub {
+        return $_[0]->{model}->lookup(category =>
+            $_[0]->parent_id,
+        );
     };
 
     # 更新日時の暗黙的な更新
-    add_method  'update_with_timestamp' => \&_update_with_timestamp;
+    add_method 'update_with_timestamp' => \&_update_with_timestamp;
 };
 
 # ================================================================
@@ -155,11 +153,11 @@ install_model website_category => schema {
     column      'common.updated_on';
 
     # 別名カラム
-    alias_column common_created_on      => 'created_on';
-    alias_column common_updated_on      => 'updated_on';
+    alias_column common_created_on => 'created_on';
+    alias_column common_updated_on => 'updated_on';
 
     # 更新日時の暗黙的な更新
-    add_method  'update_with_timestamp' => \&_update_with_timestamp;
+    add_method 'update_with_timestamp' => \&_update_with_timestamp;
 };
 
 # ================================================================
@@ -178,14 +176,14 @@ install_model tag => schema {
     column      'common.updated_on';
 
     # 別名カラム
-    alias_column taxonomy_slug          => 'slug';
-    alias_column taxonomy_name          => 'name';
-    alias_column taxonomy_description   => 'description';
-    alias_column common_created_on      => 'created_on';
-    alias_column common_updated_on      => 'updated_on';
+    alias_column taxonomy_slug        => 'slug';
+    alias_column taxonomy_name        => 'name';
+    alias_column taxonomy_description => 'description';
+    alias_column common_created_on    => 'created_on';
+    alias_column common_updated_on    => 'updated_on';
 
     # 更新日時の暗黙的な更新
-    add_method  'update_with_timestamp' => \&_update_with_timestamp;
+    add_method 'update_with_timestamp' => \&_update_with_timestamp;
 };
 
 # ================================================================
@@ -203,11 +201,11 @@ install_model website_tag => schema {
     column      'common.updated_on';
 
     # 別名カラム
-    alias_column common_created_on      => 'created_on';
-    alias_column common_updated_on      => 'updated_on';
+    alias_column common_created_on => 'created_on';
+    alias_column common_updated_on => 'updated_on';
 
     # 更新日時の暗黙的な更新
-    add_method  'update_with_timestamp' => \&_update_with_timestamp;
+    add_method 'update_with_timestamp' => \&_update_with_timestamp;
 };
 
 
@@ -261,7 +259,7 @@ SimpleLinks::Schema::Table - table schemas
         backend     => 'SQLite',
         model_class => 'SimpleLinks::Schema::Table',
         dsn_options => {
-            dbname => '/virtual/eorzea/db/simplelinks.db',
+            dbname => '/virtual/USERNAME/db/SimpleLinks.db',
         },
     );
     my $website = $model->lookup( website => 1 );
@@ -308,7 +306,7 @@ SimpleLinks::Schema::Table - table schemas
         my $model   = $c->model('Links');
         my $website = $model->lookup( website => 1 );
 
-        # $c->res->header(content_type => 'text/plain');
+        $c->res->header(content_type => 'text/plain');
         $c->res->body(Encode::decode_utf8(Dump $website));
     }
 
@@ -322,7 +320,7 @@ SimpleLinks::Schema::Table - table schemas
 
 このモジュールは、SimpleLinksアプリケーション(p5-ark-sample-simplelinks)のテーブルスキーマです。
 
-L<SYNOPSIS|/SYNOPSIS>では、L<Data::Model|Data::Model>の`base_driver`やDBのテーブル生成などを、ラッパークラスのL<Faktro::Schema::SQLite|Faktro::Schema::SQLite>で行っています。勿論、L<Data::ModelのSYNOPSIS|Data::Model/SYNOPSIS>の通りに、テーブルスキーマである本モジュール自体に処理を実装しても構いません。
+L<SYNOPSIS|/SYNOPSIS>では、L<Data::Model|Data::Model>のC<base_driver>やDBのテーブル生成などを、ラッパークラスのL<Faktro::Schema::SQLite|Faktro::Schema::SQLite>で行っています。勿論、L<Data::ModelのSYNOPSIS|Data::Model/SYNOPSIS>の通りに、テーブルスキーマである本モジュール自体に処理を実装しても構いません。
 
 =head2 Memorandum
 

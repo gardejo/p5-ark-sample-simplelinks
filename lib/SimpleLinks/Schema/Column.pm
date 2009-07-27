@@ -58,7 +58,7 @@ column_sugar 'website.title'
         require     => 1,
     };
 
-# 管理者名（公開されていないこともあるので、NOT NULL指定にはしない）
+# サイト管理者名（公開されていないこともあるので、NOT NULL指定にはしない）
 column_sugar 'website.owner'
     => varchar => {
     };
