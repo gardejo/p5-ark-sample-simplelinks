@@ -1,0 +1,4 @@
+SimpleLinks.db
+action.cache
+extlib/
+tmp/**/*

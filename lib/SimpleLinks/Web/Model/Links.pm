@@ -1,27 +1,23 @@
-package SimpleLinks::Web;
-
-
-# ****************************************************************
-# class variables
-# ****************************************************************
-
-our $VERSION = '0.01';
+package SimpleLinks::Web::Model::Links;
 
 
 # ****************************************************************
 # MOP
 # ****************************************************************
 
-use Ark;                    # automatically turn on strict & warnings
+use Ark 'Model::Adaptor';   # automatically turn on strict & warnings
 
 __PACKAGE__->config(
-    dbname          => undef,
-    # dbname          => $FindBin . '/',
-    # pod_namespace => 'Ark::Manual',
-    # site_title    => 'Ark 0.1 Documentation (DRAFT)',
+    class => 'Faktro::Schema::Factory',
+    args  => {
+        backend     => 'SQLite',
+        model_class => 'SimpleLinks::Schema::Table',
+        dsn_options => {
+            dbname => SimpleLinks::Web->config->{dbname},
+        },
+    },
+    deref => 1,
 );
-
-__PACKAGE__->meta->make_immutable;
 
 
 # ****************************************************************
@@ -38,7 +34,7 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web - 
+SimpleLinks::Web::Model::Links - 
 
 
 =head1 SYNOPSIS

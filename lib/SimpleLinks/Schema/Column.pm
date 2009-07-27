@@ -15,7 +15,7 @@ use warnings;
 
 use Data::Model::Schema sugar => 'simplelinks';
 use DateTime;
-use DateTime::Format::MySQL;    # SQLite3でも使える
+use DateTime::Format::MySQL;    # SQLite3でも使用可能
 use URI;
 
 
@@ -85,7 +85,7 @@ column_sugar 'category.id'
     };
 
 # 親カテゴリー識別子
-column_sugar 'category.parent'
+column_sugar 'category.parent_id'
     => integer => {
         unsigned    => 1,
     };
@@ -135,7 +135,7 @@ column_sugar 'common.created_on'
     };
 
 # 更新日時
-column_sugar 'common.created_on'
+column_sugar 'common.updated_on'
     => datetime => {
         require     => 1,
         _definition_of_datetime(),
@@ -195,16 +195,54 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Schema::Column - 
+SimpleLinks::Schema::Column - column schemas
 
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    package SimpleLinks::Schema::Table;
+
+    use base qw( Data::Model );
+    use Data::Model::Schema sugar => 'simplelinks';
+    use SimpleLinks::Schema::Column;
+
+    install_model website => schema {
+        key         'id';
+
+        column      'website.id' => { auto_increment => 1 };
+        column      'website.uri';
+        utf8_column 'website.title';
+        # ....
+    };
+
 
 =head1 DESCRIPTION
 
-blah blah blah
+このモジュールは、SimpleLinksアプリケーション(p5-ark-sample-simplelinks)のカラムスキーマです。
+
+=head2 Why UTC?
+
+日時はUTCで取り扱うこととしています。この実装は、国際化（多国語対応・地方時対応）の一環であることと同時に、時差ずれの芽を摘む意図もあります。
+
+私見ですが、入力時にエンコード・出力時にデコードして文字化けの芽を摘む文字エンコーディングと同様に、格納および展開時にはUTC・使用時に適宜C<< $row->created_on->set_time_zone($timezone) >>する癖を付けておいた方が良いと思います。
+
+=head2 Last updated date-time
+
+最終更新日時を更新する際には、
+
+    $row->any_column($any_value);
+    $row->updated_on(DateTime->now(time_zone => 'UTC'));
+    $row->update;
+
+と明示的に書き込むか、
+
+    $row->any_column($any_value);
+    $row->update_with_timestamp;
+
+という追加メソッドを使います。
+
+TIMESTAMP型のような値を使う洗練された方式がもしあれば、それを使うのが正解です。
+
 
 =head1 AUTHOR
 
