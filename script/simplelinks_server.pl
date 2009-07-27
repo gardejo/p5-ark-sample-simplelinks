@@ -89,6 +89,7 @@ sub configuration {
     );
 
     $config->{dbname} = $dbname if $dbname;
+    $config->{dbname} = $FindBin::Bin . '/../' . $config->{dbname};
 
     return ($config, $debug, $port, $address);
 }

@@ -43,7 +43,10 @@ use SimpleLinks::Web;
 
 my $app = SimpleLinks::Web->new;
 
-$app->config( LoadFile($FindBin::Bin . '/../SimpleLinks.yml') );
+my $config = LoadFile($FindBin::Bin . '/../SimpleLinks.yml');
+$config->{dbname} = $FindBin::Bin . '/../' . $config->{dbname};
+
+$app->config( $config );
 $app->setup_minimal;
 
 HTTP::Engine->new(

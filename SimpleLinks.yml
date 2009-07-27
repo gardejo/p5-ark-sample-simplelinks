@@ -1,5 +1,6 @@
 # Specify path of SQLite database file.
-# example 1 : relative) dbname : ./db/SimpleLinks.db
-# example 2 : relative) dbname : SimpleLinks.db
-# example 3 : absolute) dbname : /virtual/{USERNAME}/db/SimpleLinks.db
+#   example 1) dbname : SimpleLinks.db
+#   example 2) dbname : db/SimpleLinks.db
+#   example 3) dbname : ../db/SimpleLinks.db
+#   caveat: relative path only (base directory is application root)
 dbname : SimpleLinks.db
