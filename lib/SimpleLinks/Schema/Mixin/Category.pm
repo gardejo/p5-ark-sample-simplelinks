@@ -1,25 +1,35 @@
-package SimpleLinks::Web::Model::Links;
+package SimpleLinks::Schema::Mixin::Category;
 
 
 # ****************************************************************
-# MOP
+# pragmas
 # ****************************************************************
 
-use Ark 'Model::Adaptor';   # automatically turn on strict & warnings
+use strict;
+use warnings;
 
-__PACKAGE__->config(
-    class => 'SimpleLinks::Service::Links',
-    args  => {
-        schema_factory => 'Faktro::Schema::Factory',
-        connect_info   => {
-            backend     => 'SQLite',
-            model_class => 'SimpleLinks::Schema::Table',
-            dsn_options => {
-                dbname => SimpleLinks::Web->config->{dbname},
-            },
-        },
-    },
-);
+
+# ****************************************************************
+# general dependencies
+# ****************************************************************
+
+use Carp qw();
+
+
+# ****************************************************************
+# register
+# ****************************************************************
+
+sub register_method {
+    +{
+    };
+}
+
+
+# ****************************************************************
+# additional methods
+# ****************************************************************
+
 
 
 # ****************************************************************
@@ -36,12 +46,12 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::Model::Links - 
+SimpleLinks::Schema::Mixin::Category - 
 
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION

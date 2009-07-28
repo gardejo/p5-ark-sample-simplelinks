@@ -44,6 +44,7 @@ column_sugar 'website.id'
 # URI
 column_sugar 'website.uri'
     => varchar => {
+        require     => 1,
         inflate     => sub {
             URI->new($_[0]);
         },
@@ -73,6 +74,9 @@ column_sugar 'website.comment'
     => varchar => {
     };
 
+# 必ずカテゴリに属する、という制約はadd_websiteで行う（生のsetは使わない）か、
+# 「カテゴリ未分類」特殊カテゴリを設ける（前者の方が楽）
+
 # ================================================================
 # カテゴリー
 # ================================================================
@@ -88,6 +92,22 @@ column_sugar 'category.id'
 column_sugar 'category.parent_id'
     => integer => {
         unsigned    => 1,
+    };
+
+# 子（直接の子）カテゴリー数（キャッシュ）
+column_sugar 'category.count_children'
+    => integer => {
+        require     => 1,
+        unsigned    => 1,
+        default     => 0,
+    };
+
+# 子孫（全ての子・孫・曾孫……）カテゴリー数（キャッシュ）
+column_sugar 'category.count_descendants'
+    => integer => {
+        require     => 1,
+        unsigned    => 1,
+        default     => 0,
     };
 
 # ================================================================
@@ -124,42 +144,6 @@ column_sugar 'website_tag.id'
     };
 
 # ================================================================
-# 共通（汎用）
-# ================================================================
-
-# 作成日時
-column_sugar 'common.created_on'
-    => datetime => {
-        require     => 1,
-        _definition_of_datetime(),
-    };
-
-# 更新日時
-column_sugar 'common.updated_on'
-    => datetime => {
-        require     => 1,
-        _definition_of_datetime(),
-    };
-
-sub _definition_of_datetime {
-    return (
-        inflate     => sub {
-            DateTime::Format::MySQL
-                ->parse_datetime($_[0])
-                ->set_time_zone('UTC');
-        },
-        deflate     => sub {
-            DateTime::Format::MySQL
-                ->format_datetime($_[0]->set_time_zone('UTC'));
-        },
-        default     => sub {
-            DateTime::Format::MySQL
-                ->format_datetime(DateTime->now(time_zone => 'UTC'));
-        },
-    );
-}
-
-# ================================================================
 # 分類（汎用）
 # ================================================================
 
@@ -179,6 +163,50 @@ column_sugar 'taxonomy.name'
 column_sugar 'taxonomy.description'
     => varchar => {
     };
+
+# 所属ウェブサイト数（キャッシュ）
+column_sugar 'taxonomy.count_websites'
+    => integer => {
+        require     => 1,
+        unsigned    => 1,
+        default     => 0,
+    };
+
+# ================================================================
+# 共通（汎用）
+# ================================================================
+
+# 作成日時
+column_sugar 'common.created_on'
+    => datetime => {
+        require     => 1,
+        _elasticity_of_datetime(),
+    };
+
+# 更新日時
+column_sugar 'common.updated_on'
+    => datetime => {
+        require     => 1,
+        _elasticity_of_datetime(),
+    };
+
+sub _elasticity_of_datetime {
+    return (
+        inflate     => sub {
+            DateTime::Format::MySQL
+                ->parse_datetime($_[0])
+                ->set_time_zone('UTC');
+        },
+        deflate     => sub {
+            DateTime::Format::MySQL
+                ->format_datetime($_[0]->set_time_zone('UTC'));
+        },
+        default     => sub {
+            DateTime::Format::MySQL
+                ->format_datetime(DateTime->now(time_zone => 'UTC'));
+        },
+    );
+}
 
 
 # ****************************************************************
