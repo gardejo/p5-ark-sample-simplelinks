@@ -26,7 +26,7 @@ use FindBin::libs;
 
 # These modules are in local library (ex. /virtual/{USERNAME}/local/lib).
 use HTTP::Engine;
-use YAML::Syck;
+use YAML::Any;
 
 
 # ****************************************************************

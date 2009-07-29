@@ -15,7 +15,7 @@ our $VERSION = '0.00_00';
 use Ark;                    # automatically turn on strict & warnings
 
 __PACKAGE__->config(
-    dbname          => undef,
+    dbname => undef,
 );
 
 __PACKAGE__->meta->make_immutable;

@@ -49,7 +49,7 @@ column_sugar 'website.uri'
             URI->new($_[0]);
         },
         deflate     => sub {
-            $_[0]->as_string;
+            Scalar::Util::blessed $_[0] ? $_[0]->as_string : $_[0];
         },
     };
 

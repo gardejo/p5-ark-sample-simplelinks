@@ -1,1 +1,59 @@
-This is Perl application p5-ark-sample-simplelinks (SimpleLinks::Web).
+=head1 NAME
+
+SimpleLinks - collection of links
+
+
+=head1 INSTALLATION
+
+To install this application,
+first, install module L<Module::Install>
+by the following command:
+
+    cpan Module::Install
+
+next, to make Makefile, build this application and run tests
+by the following command:
+
+    cpan -t .
+
+finally, to deploy this application
+by the following command:
+
+    make install
+
+
+=head1 DEPENDENCIES
+
+See C<Makefile.PL>.
+
+
+=head1 DESCRIPTION
+
+This is Perl sample application,
+with Ark framework and Data::Model object/data mapper.
+
+See further document of this application by the following commands:
+
+    perldoc SimpleLinks
+
+
+=head1 AUTHOR
+
+=over 4
+
+=item MORIYA Masaki ("Gardejo")
+
+C<< <moriya at ermitejo dot com> >>,
+L<http://ttt.ermitejo.com/>
+
+=back
+
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
+L<http://ttt.ermitejo.com>.
+
+This library is free software;
+you can redistribute it and/or modify it under the same terms as Perl itself.
+See L<perlgpl|perlapi> and L<perlartistic|perlartistic>.

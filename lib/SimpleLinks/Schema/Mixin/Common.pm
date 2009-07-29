@@ -23,7 +23,8 @@ use DateTime;
 
 sub register_method {
     +{
-        _update_with_timestamp => \&update_with_timestamp,
+        _update_with_timestamp      => \&update_with_timestamp,
+        _alias_columns_of_common    => \&alias_columns_of_common,
     };
 }
 
@@ -45,6 +46,15 @@ sub update_with_timestamp {
     $row->update;
 
     return $row;
+}
+
+sub alias_columns_of_common {
+    my $scalar = shift;
+
+    return [
+        common_created_on => 'created_on',
+        common_updated_on => 'updated_on',
+    ];
 }
 
 

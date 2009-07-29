@@ -1,4 +1,11 @@
+META.yml
+Makefile
+Makefile.old
 SimpleLinks.db
 action.cache
+blib/
 extlib/
+inc/
+pm_to_blib
+*.tmp
 tmp/**/*

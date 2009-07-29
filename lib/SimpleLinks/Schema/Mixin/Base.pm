@@ -1,42 +1,50 @@
-package SimpleLinks::Web::Controller::Root;
+package SimpleLinks::Schema::Mixin::Base;
 
 
 # ****************************************************************
-# MOP
+# pragmas
 # ****************************************************************
 
-use Ark 'Controller';       # automatically turn on strict & warnings
-
-has '+namespace' => (
-    default => '',
-);
+use strict;
+use warnings;
 
 
 # ****************************************************************
-# actions
+# general dependencies
 # ****************************************************************
 
-# default 404 handler
-sub default :Path :Args {
-    my ($self, $c) = @_;
+use Carp qw();
 
-    $c->res->status(404);
-    $c->res->body('404 Not Found');
+
+# ****************************************************************
+# miscellaneous methods
+# ****************************************************************
+
+sub _alias_to_real {
+    my ($schema, $option, $alias) = @_;
+
+    my %new_option = %$option;
+
+    while ( my ($real_column, $alias_column) = each %$alias ) {
+        if (exists $new_option{$alias_column}) {
+            $new_option{$real_column} = $new_option{$alias_column};
+            delete $new_option{$alias_column};
+        }
+    }
+
+    return \%new_option;
 }
 
-sub index :Path :Args(0) {
-    my ($self, $c) = @_;
+sub _separate_taxonomy_from {
+    my ($schema, $option, $taxonomy_attributes) = @_;
 
-    my $model   = $c->model('Links');
-    my $website = $model->lookup( website => 1 );
+    my %new_option = %$option;
+    my %taxonomy_option;
+    @taxonomy_option{@$taxonomy_attributes}
+        = @new_option{@$taxonomy_attributes};
+    delete @new_option{@$taxonomy_attributes};
 
-    # test
-    use YAML::Any;
-    use Encode;
-    $c->res->header(content_type => 'text/plain; charset=UTF-8');
-    $c->res->body(Encode::decode_utf8(Dump $website));
-
-    # $c->res->body('Ark Default Index');
+    return \%new_option, \%taxonomy_option;
 }
 
 
@@ -54,12 +62,12 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::Model::Links - 
+SimpleLinks::Schema::Mixin::Base - 
 
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION

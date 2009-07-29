@@ -84,6 +84,8 @@ install_model category => schema {
     __PACKAGE__->category_might_belong_to_parent;
     __PACKAGE__->many_taxonomy_to_many_websites;
 
+    __PACKAGE__->must_update_with_rebuild;
+
     __PACKAGE__->can_update_with_timestamp;
 };
 
@@ -112,6 +114,7 @@ install_model tag => schema {
     __PACKAGE__->columns_of_common;
 
     unique      'taxonomy_name';
+    unique      'taxonomy_slug';
 
     __PACKAGE__->many_taxonomy_to_many_websites;
 
@@ -169,10 +172,7 @@ sub columns_of_common {
 sub alias_columns_of_taxonomy {
     my $schema = shift;
 
-    alias_column taxonomy_slug           => 'slug';
-    alias_column taxonomy_name           => 'name';
-    alias_column taxonomy_description    => 'description';
-    alias_column taxonomy_count_websites => 'count_websites';
+    $schema->_set_alias_columns($schema->_alias_columns_of_taxonomy);
 
     return;
 }
@@ -180,8 +180,19 @@ sub alias_columns_of_taxonomy {
 sub alias_columns_of_common {
     my $schema = shift;
 
-    alias_column common_created_on => 'created_on';
-    alias_column common_updated_on => 'updated_on';
+    $schema->_set_alias_columns($schema->_alias_columns_of_common);
+
+    return;
+}
+
+sub _set_alias_columns {
+    my ($schema, $alias_columns) = @_;
+
+    while(
+        my ($real_column, $alias_column) = (splice @$alias_columns, 0, 2)
+    ) {
+        alias_column $real_column => $alias_column;
+    }
 
     return;
 }
@@ -262,8 +273,12 @@ sub category_has_many_children {
     };
 
     add_method _build_children_count => sub {
-        my @children = $_[0]->children;         # force list context
-        return $_[0]->count_children(scalar @children);
+        return $_[0]->count_children
+            ( scalar( my @children = $_[0]->children ) );
+    };
+
+    add_method is_leaf => sub {
+        return not $_[0]->count_children;
     };
 
     return;
@@ -291,8 +306,8 @@ sub category_has_many_descendants {
     };
 
     add_method _build_descendants_count => sub {
-        my @descendants = $_[0]->descendants;   # force list context
-        return $_[0]->count_descendants(scalar @descendants);
+        return $_[0]->count_descendants
+            ( scalar( my @descendants = $_[0]->descendants ) );
     };
 
     return;
@@ -310,7 +325,17 @@ sub category_might_belong_to_parent {
     };
 
     add_method is_root => sub {
-        return defined ! $_[0]->parent;
+        return not defined $_[0]->parent_id;
+    };
+
+    return;
+}
+
+sub must_update_with_rebuild {
+    my $schema = shift;
+
+    add_method update_xxxxx => sub {
+        $schema->edit_category($_[0]);
     };
 
     return;
@@ -373,7 +398,7 @@ SimpleLinks::Schema::Table - table schemas
 
     use Encode;
     use FindBin;
-    use YAML::Syck;
+    use YAML::Any;
 
     my $model = Faktro::Schema::Factory->new(
         backend     => 'SQLite',
@@ -412,7 +437,7 @@ SimpleLinks::Schema::Table - table schemas
     package SimpleLinks::Web::Controller::Root;
 
     use Encode;
-    use YAML::Syck;
+    use YAML::Any;
 
     use Ark 'Controller';
 

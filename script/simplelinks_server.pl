@@ -28,7 +28,7 @@ use FindBin::libs;
 use Getopt::Long;
 use HTTP::Engine;
 use HTTP::Engine::Middleware;
-use YAML::Syck;
+use YAML::Any;
 
 
 # ****************************************************************

@@ -10,6 +10,15 @@ use warnings;
 
 
 # ****************************************************************
+# superclasses
+# ****************************************************************
+
+use base qw(
+    SimpleLinks::Schema::Mixin::Base
+);
+
+
+# ****************************************************************
 # general dependencies
 # ****************************************************************
 
@@ -22,7 +31,12 @@ use Carp qw();
 
 sub register_method {
     +{
-        add_website => \&add_website,
+        websites                    => \&all_websites,
+        all_websites                => \&all_websites,
+        filter_websites             => \&filter_websites,
+        count_websites              => \&count_websites,
+        add_website                 => \&add_website,
+        _alias_columns_of_website   => \&alias_columns_of_website,
         # ...
     };
 }
@@ -32,28 +46,59 @@ sub register_method {
 # additional methods
 # ****************************************************************
 
+sub all_websites {
+    my $schema = shift;
+
+    return $schema->get(website => {
+        order   => {
+            id  => 'ASC',
+        },
+    });
+}
+
+sub filter_websites {
+    my ($schema, $keys) = @_;
+
+    return $schema->lookup_multi(website => {
+        @$keys,
+    });
+}
+
+sub count_websites {
+    my $schema = shift;
+
+    return scalar(my @websites = $schema->all_websites);
+}
+
 sub add_website {
-    my ($model, $option) = @_;
+    my ($schema, $option) = @_;
 
-    my @taxonomy_attributes = qw(category_ids tag_ids);
-    my %taxonomy_option;
-    @taxonomy_option{@taxonomy_attributes} = @{$option}{@taxonomy_attributes};
-    delete @{$option}{@taxonomy_attributes};
+    my $modified_option
+        = __PACKAGE__->SUPER::_alias_to_real
+            ($option, $schema->_alias_columns_of_website);
+    ($modified_option, my $taxonomy_option)
+        = $schema->SUPER::_separate_taxonomy_from
+            ($modified_option, [qw(categories tags)]);
 
-    my $row = $model->set($option);
-    if (keys %taxonomy_option) {
-        $model->add_taxonomy(\%taxonomy_option);
+    my $website = $schema->set(website => $modified_option);
+
+    if (keys %$taxonomy_option) {
+        $schema->add_taxonomy($website->id, $taxonomy_option);
     }
 
-    return $row;
+    return $website;
 }
 
-sub add_taxonomy {
+sub alias_columns_of_website {
+    my $schema = shift;
+
+    return {
+        @{ $schema->_alias_columns_of_taxonomy },
+        @{ $schema->_alias_columns_of_common },
+    };
 }
 
-sub delete_taxonomy {
-}
-
+# $website_row->add_categories
 sub add_categories {
 }
 

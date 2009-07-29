@@ -23,9 +23,12 @@ use Scalar::Util qw();
 
 sub register_method {
     +{
-        _website_ids           => \&website_ids,
-        _websites              => \&websites,
-        __build_websites_count => \&_build_websites_count,
+        _website_ids                => \&website_ids_of_taxonomy,
+        _websites                   => \&websites_of_taxonomy,
+        __build_websites_count      => \&_build_websites_count,
+        _alias_columns_of_taxonomy  => \&alias_columns_of_taxonomy,
+        add_taxonomy                => \&add_taxonomy,
+        delete_taxonomy             => \&delete_taxonomy,
     };
 }
 
@@ -34,19 +37,19 @@ sub register_method {
 # additional methods
 # ****************************************************************
 
-sub website_ids {
-    my ($schema, $row) = @_;
+sub website_ids_of_taxonomy {
+    my ($schema, $taxonomy) = @_;
 
-    (my $table_name = Scalar::Util::blessed $row) =~ s{ \A .+ :: }{}xms;
-
+    (my $table_name = Scalar::Util::blessed $taxonomy || q{})
+        =~ s{ \A .+ :: }{}xms;
     my $link_entity = 'website_' . $table_name;
     my $table_id    = $table_name . '_id';
 
     return map {
         $_->website_id;
-    } $row->{model}->get($link_entity => {
+    } $taxonomy->{model}->get($link_entity => {
         where => [
-            $table_id  => $row->id,
+            $table_id  => $taxonomy->id,
         ],
         order => {
             website_id => 'ASC',
@@ -54,24 +57,67 @@ sub website_ids {
     });
 }
 
-sub websites {
-    my ($schema, $row) = @_;
+sub websites_of_taxonomy {
+    my ($schema, $taxonomy) = @_;
 
-    my @website_ids = $row->website_ids($row);
+    my @website_ids = $taxonomy->website_ids($taxonomy);
+
     return unless @website_ids;
-
-    return $row->{model}->lookup_multi(website => [
-        @website_ids,
-    ]);
+    return $schema->filter_websites(\@website_ids);
 }
 
 sub _build_websites_count {
-    my ($schema, $row) = @_;
+    my ($schema, $taxonomy) = @_;
 
-    my @websites = $row->websites($row);   # force list context
-
-    return $row->count_websites(scalar @websites);
+    return $taxonomy->count_websites
+        ( scalar( my @websites = $taxonomy->websites($taxonomy) ) );
 }
+
+sub alias_columns_of_taxonomy {
+    my $schema = shift;
+
+    return [
+        taxonomy_slug           => 'slug',
+        taxonomy_name           => 'name',
+        taxonomy_description    => 'description',
+        taxonomy_count_websites => 'count_websites',
+    ];
+}
+
+sub add_taxonomy {
+    my ($schema, $website_id, $option) = @_;
+
+    if (defined $option->{categories}) {
+        foreach my $category_id (
+            map {
+                Scalar::Util::blessed $_ ? $_->id : $_
+            } @{ $option->{categories} }
+        ) {
+            $schema->_add_website_category({
+                website_id  => $website_id,
+                category_id => $category_id,
+            });
+        }
+    }
+    if (defined $option->{tags}) {
+        foreach my $tag_id (
+            map {
+                Scalar::Util::blessed $_ ? $_->id : $_
+            } @{ $option->{tags} }
+        ) {
+            $schema->_add_website_tag({
+                website_id => $website_id,
+                tag_id     => $tag_id,
+            });
+        }
+    }
+
+    return;
+}
+
+sub delete_taxonomy {
+}
+
 
 
 # ****************************************************************
@@ -99,6 +145,23 @@ SimpleLinks::Schema::Mixin::Taxonomy -
 =head1 DESCRIPTION
 
 blah blah blah
+
+
+=head1 SEE ALSO
+
+=over 4
+
+=item Which is fast to replace or split?
+
+    (my $table_name = Scalar::Util::blessed $row) =~ s{ \A .+ :: }{}xms;
+
+vs.
+
+    my $table_name  = (split m{::}xms, Scalar::Util::blessed $row)[-1];
+
+See L<http://gist.github.com/158256>.
+
+=back
 
 
 =head1 AUTHOR

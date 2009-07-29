@@ -1,43 +1,15 @@
-package SimpleLinks::Web::Controller::Root;
+package SimpleLinks;
+
+use 5.008_001;
+use strict;
+use warnings;
 
 
 # ****************************************************************
-# MOP
+# class variables
 # ****************************************************************
 
-use Ark 'Controller';       # automatically turn on strict & warnings
-
-has '+namespace' => (
-    default => '',
-);
-
-
-# ****************************************************************
-# actions
-# ****************************************************************
-
-# default 404 handler
-sub default :Path :Args {
-    my ($self, $c) = @_;
-
-    $c->res->status(404);
-    $c->res->body('404 Not Found');
-}
-
-sub index :Path :Args(0) {
-    my ($self, $c) = @_;
-
-    my $model   = $c->model('Links');
-    my $website = $model->lookup( website => 1 );
-
-    # test
-    use YAML::Any;
-    use Encode;
-    $c->res->header(content_type => 'text/plain; charset=UTF-8');
-    $c->res->body(Encode::decode_utf8(Dump $website));
-
-    # $c->res->body('Ark Default Index');
-}
+our $VERSION = '0.00_00';
 
 
 # ****************************************************************
@@ -54,7 +26,7 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::Model::Links - 
+SimpleLinks - application of collection of links for sample of Ark and Data::Model
 
 
 =head1 SYNOPSIS

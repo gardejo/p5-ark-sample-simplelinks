@@ -18,9 +18,18 @@ has 'model' => (
     isa         => 'Str',
     lazy_build  => 1,
     handles     => [qw(
-        lookup lookup_multi get set delete
-        txn_scope
+        lookup lookup_multi get set txn_scope
+
+        categories all_categories count_categories
+        tags       all_tags       count_tags
+        websites   all_websites   count_websites
+
+        add_category create_category
+        add_tag      create_tag
+        add_website  create_website
     )],
+    # Except 'delete', to force programmer to use $row->delete only
+    # ( to did not use $schema->delete($table => $row->id) ).
 );
 
 has 'connect_info' => (
