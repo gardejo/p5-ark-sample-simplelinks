@@ -1,26 +1,19 @@
-package SimpleLinks::Web;
+package SimpleLinks::Web::View::JSON;
+
+use strict;
+use warnings;
 
 
 # ****************************************************************
 # MOP
 # ****************************************************************
 
-use Ark;                    # automatically turn on strict & warnings
-
-__PACKAGE__->config(
-    dbname => undef,
-);
-
-__PACKAGE__->meta->make_immutable;
-
-no Ark;
 
 
 # ****************************************************************
-# class variables
+# miscellaneous methods
 # ****************************************************************
 
-our $VERSION = '0.00_00';
 
 
 # ****************************************************************
@@ -37,7 +30,7 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web - 
+SimpleLinks::Web::View::JSON - 
 
 
 =head1 SYNOPSIS

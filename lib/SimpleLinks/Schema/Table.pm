@@ -31,6 +31,7 @@ use Data::Model::Mixin modules => [
     '+SimpleLinks::Schema::Mixin::Website',
 ];
 use Data::Model::Schema sugar => 'simplelinks';
+use List::MoreUtils qw(any);
 
 
 # ****************************************************************
@@ -56,14 +57,14 @@ install_model website => schema {
     utf8_column 'website.owner';
     utf8_column 'website.introduction';
     utf8_column 'website.comment';
-    __PACKAGE__->columns_of_common;
+    __PACKAGE__->_columns_of_common;
 
     unique      'uri';
 
-    __PACKAGE__->website_has_many_categories;
-    __PACKAGE__->website_has_many_tags;
+    __PACKAGE__->_website_has_many_categories;
+    __PACKAGE__->_website_has_many_tags;
 
-    __PACKAGE__->can_update_with_timestamp;
+    __PACKAGE__->_can_update_with_timestamp;
 };
 
 # ================================================================
@@ -76,17 +77,18 @@ install_model category => schema {
     column      'category.parent_id';
     column      'category.count_children';
     column      'category.count_descendants';
-    __PACKAGE__->columns_of_taxonomy;
-    __PACKAGE__->columns_of_common;
+    __PACKAGE__->_columns_of_taxonomy;
+    __PACKAGE__->_columns_of_common;
 
-    __PACKAGE__->category_has_many_children;
-    __PACKAGE__->category_has_many_descendants;
-    __PACKAGE__->category_might_belong_to_parent;
-    __PACKAGE__->many_taxonomy_to_many_websites;
+    __PACKAGE__->_category_has_many_children;
+    __PACKAGE__->_category_has_many_descendants;
+    __PACKAGE__->_category_might_belong_to_parent;
+    __PACKAGE__->_many_taxonomy_to_many_websites;
 
-    __PACKAGE__->must_update_with_rebuild;
+    __PACKAGE__->_can_alternative_update;
+    __PACKAGE__->_must_update_with_rebuild;
 
-    __PACKAGE__->can_update_with_timestamp;
+    __PACKAGE__->_can_update_with_timestamp;
 };
 
 # ================================================================
@@ -98,9 +100,9 @@ install_model website_category => schema {
     column      'website_category.id' => { auto_increment => 1 };
     column      'website.id';
     column      'category.id';
-    __PACKAGE__->columns_of_common;
+    __PACKAGE__->_columns_of_common;
 
-    __PACKAGE__->can_update_with_timestamp;
+    __PACKAGE__->_can_update_with_timestamp;
 };
 
 # ================================================================
@@ -110,15 +112,15 @@ install_model tag => schema {
     key         'id';
 
     column      'tag.id' => { auto_increment => 1 };
-    __PACKAGE__->columns_of_taxonomy;
-    __PACKAGE__->columns_of_common;
+    __PACKAGE__->_columns_of_taxonomy;
+    __PACKAGE__->_columns_of_common;
 
     unique      'taxonomy_name';
     unique      'taxonomy_slug';
 
-    __PACKAGE__->many_taxonomy_to_many_websites;
+    __PACKAGE__->_many_taxonomy_to_many_websites;
 
-    __PACKAGE__->can_update_with_timestamp;
+    __PACKAGE__->_can_update_with_timestamp;
 };
 
 # ================================================================
@@ -130,9 +132,9 @@ install_model website_tag => schema {
     column      'website_tag.id' => { auto_increment => 1 };
     column      'website.id';
     column      'tag.id';
-    __PACKAGE__->columns_of_common;
+    __PACKAGE__->_columns_of_common;
 
-    __PACKAGE__->can_update_with_timestamp;
+    __PACKAGE__->_can_update_with_timestamp;
 };
 
 
@@ -140,7 +142,7 @@ install_model website_tag => schema {
 # universal columns
 # ****************************************************************
 
-sub columns_of_taxonomy {
+sub _columns_of_taxonomy {
     my $schema = shift;
 
     column      'taxonomy.slug';
@@ -148,18 +150,18 @@ sub columns_of_taxonomy {
     utf8_column 'taxonomy.description';
     column      'taxonomy.count_websites';
 
-    $schema->alias_columns_of_taxonomy;
+    $schema->_alias_columns_of_taxonomy;
 
     return;
 }
 
-sub columns_of_common {
+sub _columns_of_common {
     my $schema = shift;
 
     column      'common.created_on';
     column      'common.updated_on';
 
-    $schema->alias_columns_of_common;
+    $schema->_alias_columns_of_common;
 
     return;
 }
@@ -169,18 +171,18 @@ sub columns_of_common {
 # universal alias columns
 # ****************************************************************
 
-sub alias_columns_of_taxonomy {
+sub _alias_columns_of_taxonomy {
     my $schema = shift;
 
-    $schema->_set_alias_columns($schema->_alias_columns_of_taxonomy);
+    $schema->_set_alias_columns($schema->__alias_columns_of_taxonomy);
 
     return;
 }
 
-sub alias_columns_of_common {
+sub _alias_columns_of_common {
     my $schema = shift;
 
-    $schema->_set_alias_columns($schema->_alias_columns_of_common);
+    $schema->_set_alias_columns($schema->__alias_columns_of_common);
 
     return;
 }
@@ -202,7 +204,7 @@ sub _set_alias_columns {
 # relationships
 # ****************************************************************
 
-sub website_has_many_categories {
+sub _website_has_many_categories {
     my $schema = shift;
 
     add_method category_ids => sub {
@@ -227,7 +229,7 @@ sub website_has_many_categories {
     return;
 }
 
-sub website_has_many_tags {
+sub _website_has_many_tags {
     my $schema = shift;
 
     add_method tag_ids => sub {
@@ -252,7 +254,7 @@ sub website_has_many_tags {
     return;
 }
 
-sub category_has_many_children {
+sub _category_has_many_children {
     my $schema = shift;
 
     add_method child_ids => sub {
@@ -281,10 +283,18 @@ sub category_has_many_children {
         return not $_[0]->count_children;
     };
 
+    add_method is_child_of => sub {
+        my ($category, $parent_candidate) = @_;
+
+        return any {
+            $category->id eq $_;
+        } $parent_candidate->child_ids;
+    };
+
     return;
 }
 
-sub category_has_many_descendants {
+sub _category_has_many_descendants {
     my $schema = shift;
 
     add_method descendant_ids => sub {
@@ -313,7 +323,7 @@ sub category_has_many_descendants {
     return;
 }
 
-sub category_might_belong_to_parent {
+sub _category_might_belong_to_parent {
     my $schema = shift;
 
     add_method parent => sub {
@@ -328,20 +338,39 @@ sub category_might_belong_to_parent {
         return not defined $_[0]->parent_id;
     };
 
-    return;
-}
+    add_method is_parent_of => sub {
+        my ($category, $child_candidate) = @_;
 
-sub must_update_with_rebuild {
-    my $schema = shift;
-
-    add_method update_xxxxx => sub {
-        $schema->edit_category($_[0]);
+        return any {
+            $_->id eq $child_candidate->parent_id;
+        } $category->children;
     };
 
     return;
 }
 
-sub many_taxonomy_to_many_websites {
+sub _must_update_with_rebuild {
+    my $schema = shift;
+
+    add_method update => sub {
+        $schema->__edit_category($_[0]);
+    };
+
+    return;
+}
+
+sub _can_alternative_update {
+    my $schema = shift;
+
+    add_method _internal_update => sub {
+        my $row = shift;
+        $row->{model}->update($row, @_);
+    };
+
+    return;
+}
+
+sub _many_taxonomy_to_many_websites {
     my $schema = shift;
 
     add_method website_ids => sub {
@@ -364,11 +393,11 @@ sub many_taxonomy_to_many_websites {
 # miscellaneous methods
 # ****************************************************************
 
-sub can_update_with_timestamp {
+sub _can_update_with_timestamp {
     my $schema = shift;
 
-    add_method update_with_timestamp => sub {
-        $schema->_update_with_timestamp($_[0], 'common_updated_on');
+    add_method _update_with_timestamp => sub {
+        $schema->__update_with_timestamp($_[0], 'common_updated_on');
     };
 }
 
@@ -392,13 +421,16 @@ SimpleLinks::Schema::Table - table schemas
 
 =head1 SYNOPSIS
 
-=head2 Directly (from CLI)
+    # **** Directly (from CLI) ****
 
-    use Faktro::Schema::Factory;
+    package SimpleLinks::CLI::Foobar;
 
     use Encode;
     use FindBin;
     use YAML::Any;
+
+    use lib 'extlib';
+    use Faktro::Schema::Factory;
 
     my $model = Faktro::Schema::Factory->new(
         backend     => 'SQLite',
@@ -410,14 +442,14 @@ SimpleLinks::Schema::Table - table schemas
     my $website = $model->lookup( website => 1 );
     print Encode::decode_utf8( Dump $website );
 
-    1;
-    __END__
 
-=head2 Indirectry (via Ark)
+    # **** Indirectry (via Ark) ****
+
+    # ---- Ark model ----
 
     package SimpleLinks::Web::Model::Links;
 
-    use Ark 'Model::Adaptor';
+    use Ark 'Model::Adaptor';   # automatically turn on strict & warnings
 
     __PACKAGE__->config(
         class => 'Faktro::Schema::Factory',
@@ -431,15 +463,14 @@ SimpleLinks::Schema::Table - table schemas
         deref => 1,
     );
 
-    1;
-    __END__
+    # ---- Ark controller ----
 
     package SimpleLinks::Web::Controller::Root;
 
     use Encode;
     use YAML::Any;
 
-    use Ark 'Controller';
+    use Ark 'Controller';       # automatically turn on strict & warnings
 
     has '+namespace' => (
         default => q{},
@@ -451,14 +482,9 @@ SimpleLinks::Schema::Table - table schemas
         my $model   = $c->model('Links');
         my $website = $model->lookup( website => 1 );
 
-        $c->res->header(content_type => 'text/plain');
-        $c->res->body(Encode::decode_utf8(Dump $website));
+        $c->res->header( content_type => 'text/plain' );
+        $c->res->body( Encode::decode_utf8(Dump $website) );
     }
-
-    # ...
-
-    1;
-    __END__
 
 
 =head1 DESCRIPTION
@@ -467,9 +493,10 @@ SimpleLinks::Schema::Table - table schemas
 
 L<SYNOPSIS|/SYNOPSIS>では、L<Data::Model|Data::Model>のC<base_driver>やDBのテーブル生成などを、ラッパークラスのL<Faktro::Schema::SQLite|Faktro::Schema::SQLite>で行っています。勿論、L<Data::ModelのSYNOPSIS|Data::Model/SYNOPSIS>の通りに、テーブルスキーマである本モジュール自体に処理を実装しても構いません。
 
-=head2 Memorandum
 
-=head3 auto update
+=head1 MEMORANDUM
+
+=head2 Auto update
 
 C<< $row->update >>の替わりにC<< $row->update_with_timestamp >>を使うことにより、暗黙的に更新日時を設定出来ます。
 
@@ -484,11 +511,11 @@ C<< $row->update >>を上書きして、以下のように暗黙的に更新日�
     };
 
 
-=head3 alias_colun
+=head2 Alias coluns
 
 C<< $model->set >>時にはC<< alias_column >>されたエイリアスでの格納は不可能（？）。
 
-=head3 relationship
+=head2 Relationship
 
 C<belongs_to>, C<has_many>, C<might_have>, C<has_one>, C<many_to_many>は、単なる命名規則に過ぎません。
 
@@ -508,7 +535,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

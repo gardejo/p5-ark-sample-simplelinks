@@ -2,6 +2,13 @@ package SimpleLinks::Web::Controller::Root;
 
 
 # ****************************************************************
+# general dependencies
+# ****************************************************************
+
+use Exception::Class::TryCatch;
+
+
+# ****************************************************************
 # MOP
 # ****************************************************************
 
@@ -11,32 +18,50 @@ has '+namespace' => (
     default => '',
 );
 
+# with Localizable
+
+__PACKAGE__->meta->make_immutable;
+
 
 # ****************************************************************
 # actions
 # ****************************************************************
 
 # default 404 handler
-sub default :Path :Args {
+sub default : Path Args {
     my ($self, $c) = @_;
 
     $c->res->status(404);
-    $c->res->body('404 Not Found');
+    $c->view('MT')->template('errors/404');
 }
 
-sub index :Path :Args(0) {
+sub index : Path Args(0) {
     my ($self, $c) = @_;
 
-    my $model   = $c->model('Links');
-    my $website = $model->lookup( website => 1 );
+    try eval {
+        # test
+        my $model   = $c->model('Links');
+        my $website = $model->lookup( website => 1 );
 
-    # test
-    use YAML::Any;
-    use Encode;
-    $c->res->header(content_type => 'text/plain; charset=UTF-8');
-    $c->res->body(Encode::decode_utf8(Dump $website));
+        use YAML::Any;
+        use Encode;
+        $c->res->header(content_type => 'text/plain; charset=UTF-8');
+        $c->res->body(Encode::decode_utf8(Dump $website));
 
-    # $c->res->body('Ark Default Index');
+        # $c->res->body('Ark Default Index');
+    };
+    if (catch my $exception) {
+       $c->res->status(500);
+        $c->view('MT')->template('errors/500');
+    }
+}
+
+sub end : Private {
+    my ($self, $c) = @_;
+
+    unless ($c->res->body or $c->res->status =~ m{ \A 3\d\d }xms) {
+        $c->forward( $c->view('MT') );
+    }
 }
 
 
@@ -54,17 +79,32 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::Model::Links - 
+SimpleLinks::Web::Controller::Root - 
 
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION
 
 blah blah blah
+
+
+=head1 ACTIONS
+
+=head2 default
+
+Ark default handler (404 Not found).
+
+=head2 index
+
+Index page (C</>).
+
+=head2 end
+
+End action. Renders content with any template.
 
 
 =head1 AUTHOR
@@ -79,7 +119,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

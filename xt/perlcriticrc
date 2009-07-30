@@ -1,0 +1,5 @@
+[TestingAndDebugging::RequireUseStrict]
+equivalent_modules = Any::Moose Ark
+
+[TestingAndDebugging::RequireUseWarnings]
+equivalent_modules = Any::Moose Ark

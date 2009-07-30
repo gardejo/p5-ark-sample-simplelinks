@@ -1,14 +1,34 @@
 package SimpleLinks::Test::Constant;
 
+
+# ****************************************************************
+# pragmas
+# ****************************************************************
+
 use strict;
 use warnings;
 
-# use Env qw(__SimpleLinks_Test_Database_Name);
-# use File::Temp qw();
+
+# ****************************************************************
+# superclasses
+# ****************************************************************
 
 use base qw(
     Exporter
 );
+
+
+# ****************************************************************
+# general dependencies
+# ****************************************************************
+
+# use Env qw(__SimpleLinks_Test_Database_Name);
+# use File::Temp qw();
+
+
+# ****************************************************************
+# class variables : Exporter settings
+# ****************************************************************
 
 our @EXPORT = qw(
     $Service_Class
@@ -20,6 +40,11 @@ our @EXPORT_OK = qw(
 our %EXPORT_TAGS = (
 );
 
+
+# ****************************************************************
+# class variables
+# ****************************************************************
+
 our $Service_Class = 'SimpleLinks::Service::Links';
 
 our $Schema_Factory = 'Faktro::Schema::Factory';
@@ -28,6 +53,7 @@ our $DBMS = 'SQLite';
 
 our $Model_Class = 'SimpleLinks::Schema::Table';
 
+our $Database_Name = 'test_database.tmp';
 # Cannot unlink test database on Win32 environment.
 # Also cannnot unlink test dtabase created by File::Temp, on Win32 environment.
 # Because test guarantee that filename of test dabase differ with time.
@@ -39,7 +65,6 @@ our $Model_Class = 'SimpleLinks::Schema::Table';
 #     )->filename;
 #     $__SimpleLinks_Test_Database_Name = $Database_Name;
 # }
-our $Database_Name = 'test_database.tmp';
 
 our $Builder_Option_Of_Database = {
     schema_factory => $Schema_Factory,
@@ -52,8 +77,18 @@ our $Builder_Option_Of_Database = {
     },
 };
 
+
+# ****************************************************************
+# return true
+# ****************************************************************
+
 1;
 __END__
+
+
+# ****************************************************************
+# POD
+# ****************************************************************
 
 =head1 NAME
 
@@ -78,7 +113,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

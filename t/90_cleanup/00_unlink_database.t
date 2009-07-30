@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use local::lib;
 
-# use Cwd qw(cwd);
-# use File::Spec qw();
 use Test::More 0.87_01;
 
 use lib 'extlib';
@@ -21,8 +19,8 @@ END {
     eval {
         cleanup();
     };
-    # Because "Permission denied" error may happen on Win32,
-    # I don't ok(! -f $Database_Name, 'database file was unlinked');
+    # Because "Permission denied" error may happen on Win32, I don't this test:
+    # ok(! -f $Database_Name, 'database file was unlinked');
 }
 
 1;

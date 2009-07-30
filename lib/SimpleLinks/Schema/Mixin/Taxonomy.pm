@@ -23,12 +23,12 @@ use Scalar::Util qw();
 
 sub register_method {
     +{
-        _website_ids                => \&website_ids_of_taxonomy,
-        _websites                   => \&websites_of_taxonomy,
-        __build_websites_count      => \&_build_websites_count,
-        _alias_columns_of_taxonomy  => \&alias_columns_of_taxonomy,
-        add_taxonomy                => \&add_taxonomy,
-        delete_taxonomy             => \&delete_taxonomy,
+        __add_taxonomy              => \&__add_taxonomy,
+        __delete_taxonomy           => \&__delete_taxonomy,
+        _website_ids                => \&__website_ids_of_taxonomy,
+        _websites                   => \&__websites_of_taxonomy,
+        __build_websites_count      => \&__build_websites_count,
+        __alias_columns_of_taxonomy => \&__alias_columns_of_taxonomy,
     };
 }
 
@@ -37,7 +37,7 @@ sub register_method {
 # additional methods
 # ****************************************************************
 
-sub website_ids_of_taxonomy {
+sub __website_ids_of_taxonomy {
     my ($schema, $taxonomy) = @_;
 
     (my $table_name = Scalar::Util::blessed $taxonomy || q{})
@@ -57,7 +57,7 @@ sub website_ids_of_taxonomy {
     });
 }
 
-sub websites_of_taxonomy {
+sub __websites_of_taxonomy {
     my ($schema, $taxonomy) = @_;
 
     my @website_ids = $taxonomy->website_ids($taxonomy);
@@ -66,14 +66,14 @@ sub websites_of_taxonomy {
     return $schema->filter_websites(\@website_ids);
 }
 
-sub _build_websites_count {
+sub __build_websites_count {
     my ($schema, $taxonomy) = @_;
 
     return $taxonomy->count_websites
         ( scalar( my @websites = $taxonomy->websites($taxonomy) ) );
 }
 
-sub alias_columns_of_taxonomy {
+sub __alias_columns_of_taxonomy {
     my $schema = shift;
 
     return [
@@ -84,7 +84,7 @@ sub alias_columns_of_taxonomy {
     ];
 }
 
-sub add_taxonomy {
+sub __add_taxonomy {
     my ($schema, $website_id, $option) = @_;
 
     if (defined $option->{categories}) {
@@ -93,7 +93,7 @@ sub add_taxonomy {
                 Scalar::Util::blessed $_ ? $_->id : $_
             } @{ $option->{categories} }
         ) {
-            $schema->_add_website_category({
+            $schema->__add_website_category({
                 website_id  => $website_id,
                 category_id => $category_id,
             });
@@ -105,7 +105,7 @@ sub add_taxonomy {
                 Scalar::Util::blessed $_ ? $_->id : $_
             } @{ $option->{tags} }
         ) {
-            $schema->_add_website_tag({
+            $schema->__add_website_tag({
                 website_id => $website_id,
                 tag_id     => $tag_id,
             });
@@ -115,7 +115,7 @@ sub add_taxonomy {
     return;
 }
 
-sub delete_taxonomy {
+sub __delete_taxonomy {
 }
 
 
@@ -147,6 +147,14 @@ SimpleLinks::Schema::Mixin::Taxonomy -
 blah blah blah
 
 
+=head1 METHODS
+
+=head2 register_method
+
+B<INTERNAL USE ONLY>.
+For L<Data::Model::Mixin|Data::Model::Mixin> mechanism.
+
+
 =head1 SEE ALSO
 
 =over 4
@@ -176,7 +184,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

@@ -1,26 +1,46 @@
-package SimpleLinks::Web;
+package SimpleLinks::Web::View::MT;
 
 
 # ****************************************************************
 # MOP
 # ****************************************************************
 
-use Ark;                    # automatically turn on strict & warnings
+use Ark 'View::MT';         # automatically turn on strict & warnings
 
-__PACKAGE__->config(
-    dbname => undef,
+has '+options' => (
+    default => sub {
+        my $self = shift;
+
+        my $context   = sub { $self->context };
+        my $stash     = sub { $self->context->stash };
+        # my $user      = sub { $self->context->user };
+        # my $localizer = sub { $self->context->stash->{localizer} };
+
+        return {
+            tag_start  => '[%',
+            tag_end    => '%]',
+            line_start => '%',
+            template_args => {
+                c           => $context,
+                stash       => $stash,
+                s           => $stash,
+                # user        => $user,
+                # u           => $user,
+                # localizer   => $localizer,
+                # l           => $localizer,
+            },
+        };
+    },
 );
 
+no Ark;
 __PACKAGE__->meta->make_immutable;
 
-no Ark;
-
 
 # ****************************************************************
-# class variables
+# miscellaneous methods
 # ****************************************************************
 
-our $VERSION = '0.00_00';
 
 
 # ****************************************************************
@@ -37,7 +57,7 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web - 
+SimpleLinks::Web::View::MT - 
 
 
 =head1 SYNOPSIS

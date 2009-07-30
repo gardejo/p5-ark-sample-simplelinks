@@ -20,8 +20,8 @@ use Carp qw();
 # miscellaneous methods
 # ****************************************************************
 
-sub _alias_to_real {
-    my ($schema, $option, $alias) = @_;
+sub __alias_to_real {
+    my ($invocant, $option, $alias) = @_;
 
     my %new_option = %$option;
 
@@ -35,8 +35,8 @@ sub _alias_to_real {
     return \%new_option;
 }
 
-sub _separate_taxonomy_from {
-    my ($schema, $option, $taxonomy_attributes) = @_;
+sub __separate_taxonomy_from {
+    my ($invocant, $option, $taxonomy_attributes) = @_;
 
     my %new_option = %$option;
     my %taxonomy_option;
@@ -87,7 +87,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

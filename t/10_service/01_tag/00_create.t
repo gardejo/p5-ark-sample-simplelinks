@@ -7,11 +7,10 @@ use Test::Exception;
 use Test::More 0.87_01;
 use Time::HiRes qw(time);
 
-use lib 't/lib';
 use lib 'extlib';
+use lib 't/lib';
 
 use SimpleLinks::Test::Constant;
-
 load $Service_Class;
 
 my $links = $Service_Class->new($Builder_Option_Of_Database);
@@ -29,7 +28,7 @@ my $name = 'name' . time;
 my $slug = 'slug' . time;
 
 {
-    # insert tag
+    # create a new tag
     my $new_tag = $links->add_tag({
         name    => $name,
         slug    => $slug,
@@ -38,19 +37,21 @@ my $slug = 'slug' . time;
     isa_ok( $new_tag, 'Data::Model::Row' );
     isa_ok( $new_tag, $Model_Class . '::tag' );
 
+    # tag was created (read tags)
     my @tags     = $links->tags;
     my @all_tags = $links->all_tags;
     is( scalar @tags,       1, 'count 1 ok (scalar @tags)' );
     is( scalar @all_tags,   1, 'count 1 ok (scalar @all_tags)' );
     is( $links->count_tags, 1, 'count 1 ok (count_tags)' );
 
+    # created tag has same column-values as query
     is( $tags[0]->id, $new_tag->id, 'id ok' );
     is( $tags[0]->name, $name, 'name ok' );
     is( $tags[0]->slug, $slug, 'slug ok' );
 }
 
 {
-    # same name
+    # exception: same name as existent tag
     my $new_tag;
     throws_ok {
         $new_tag = $links->add_tag({
@@ -58,12 +59,12 @@ my $slug = 'slug' . time;
             slug    => 'slug' . time,
         });
     } qr{column taxonomy_name is not unique},
-        'same name exception ok';
-    # ok( ! $new_tag, 'same name not ok' );
+        'same name exception throwed';
+    # ok( ! $new_tag, 'same name not ok' ); # unnecessary (self-evident)
 }
 
 {
-    # same slug
+    # exception: same slug as existent tag
     my $new_tag;
     throws_ok {
         $new_tag = $links->add_tag({
@@ -71,9 +72,10 @@ my $slug = 'slug' . time;
             slug    => $slug,
         });
     } qr{column taxonomy_slug is not unique},
-        'same slug exception ok';
-    # ok( ! $new_tag, 'same slug not ok' );
+        'same slug exception throwed';
+    # ok( ! $new_tag, 'same slug not ok' ); # unnecessary (self-evident)
 }
+
 
 done_testing();
 

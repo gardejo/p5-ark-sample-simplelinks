@@ -1,0 +1,62 @@
+This file documents the revision history for Perl application SimpleLinks.
+
+
+VERSION HISTORY
+===============
+
+3.14_15 : Released on 1974-06-24
+--------------------------------
+
+Blah blah blah.
+
+-   The quick brown fox jumps over the lazy dog.
+-   Pack my box with five dozen liquor jugs.
+
+
+0.00_00 : Released on 1970-01-01
+--------------------------------
+
+Initial version.
+
+### Features
+
+-   En la mondon venis nova sento, tra la mondo iras forta voko.
+-   Kimi ga yo ha chiyo ni yachiyo ni
+    sazare ishi no iwao to narite
+    koke no musu made.
+-   Auferstanden aus Ruinen und der Zukunf zugewandt.
+
+
+GENERAL INFORMATION
+===================
+
+Version notation
+----------------
+
+    [V.vv_rr] Released on YYYY-MM-DD
+    --------------------------------
+
+### V  : Major version number
+
+-   Added ambitious feature(s)
+-   Change in API(s)
+-   ...
+
+### vv : Minor version number (in major version)
+
+-   Added normal feture(s)
+-   Improve any function(s)
+-   ...
+
+### rr : Revision number (in minor version)
+-   Fix bug(s)
+-   Update document(s)
+-   ...
+
+
+Format
+------
+
+This `Changes` file was formatted in Markdown.
+
+    $ perl -MText::Markdown -MFile::Slurp -e 'print (Text::Markdown->new->markdown(scalar read_file("Changes")));'

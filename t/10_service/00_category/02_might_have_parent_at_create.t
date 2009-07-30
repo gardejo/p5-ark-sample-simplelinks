@@ -7,16 +7,15 @@ use Module::Load;
 use Test::More 0.87_01;
 use Time::HiRes qw(time);
 
-use lib 't/lib';
 use lib 'extlib';
+use lib 't/lib';
 
 use SimpleLinks::Test::Constant;
-
 load $Service_Class;
 
 my $links = $Service_Class->new($Builder_Option_Of_Database);
 
-# insert categories these may have parent/children
+# create new categories these may have parent/children
 my $category_a = $links->add_category({
     name    => 'name_a' . time,
     slug    => 'slug_a' . time,
@@ -54,7 +53,8 @@ my $category_g = $links->add_category({
 });
 ok( $category_g, 'create category has ancestor ok (g -> f -> e)' );
 
-# reload categories to get updated cache
+# reload categories to update 'count' cache
+# notice: must use alias (foreach $_) instead of copy (foreach my $category)
 foreach (( $category_a, $category_b, $category_c, $category_d,
            $category_e, $category_f, $category_g )) {
     $_ = $links->lookup(category => $_->id);

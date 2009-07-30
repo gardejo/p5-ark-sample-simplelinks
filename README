@@ -1,6 +1,6 @@
 =head1 NAME
 
-SimpleLinks - collection of links
+SimpleLinks - sample application of collection of links (with Ark and Data::Model)
 
 
 =head1 INSTALLATION
@@ -19,7 +19,7 @@ by the following command:
 finally, to deploy this application
 by the following command:
 
-    make install
+    cpan -i .
 
 
 =head1 DEPENDENCIES
@@ -49,7 +49,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

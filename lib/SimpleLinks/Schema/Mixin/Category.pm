@@ -23,6 +23,7 @@ use base qw(
 # ****************************************************************
 
 use Carp qw();
+use List::MoreUtils qw(none);
 use List::Util qw(first);
 
 
@@ -32,17 +33,17 @@ use List::Util qw(first);
 
 sub register_method {
     +{
+        add_category                    => \&add_category,
+        create_category                 => \&add_category,
         categories                      => \&all_categories,
         all_categories                  => \&all_categories,
         count_categories                => \&count_categories,
-        add_category                    => \&add_category,
-        create_category                 => \&add_category,
-        edit_category                   => \&edit_category,
-        update_category                 => \&edit_category,
-        remove_category                 => \&remove_category,
-        delete_category                 => \&remove_category,
-        _alias_columns_of_category      => \&alias_columns_of_category,
-        _add_website_category           => \&add_website_category,
+        __edit_category                 => \&__edit_category,
+        __update_category               => \&__edit_category,
+        __remove_category               => \&__remove_category,
+        __delete_category               => \&__remove_category,
+        __alias_columns_of_category     => \&__alias_columns_of_category,
+        __add_website_category          => \&__add_website_category,
     };
 }
 
@@ -50,6 +51,22 @@ sub register_method {
 # ****************************************************************
 # additional methods
 # ****************************************************************
+
+sub add_category {
+    my ($schema, $option) = @_;
+
+    my $modified_option
+        = __PACKAGE__->__alias_to_real($schema, $option);
+    __PACKAGE__->__check_same_column
+        ($schema, 'taxonomy_name', $modified_option);
+    __PACKAGE__->__check_same_column
+        ($schema, 'taxonomy_slug', $modified_option);
+
+    my $category = $schema->set(category => $modified_option);
+    __PACKAGE__->__build_parent_recursively($schema, $category);
+
+    return $category;
+}
 
 sub all_categories {
     my $schema = shift;
@@ -67,41 +84,25 @@ sub count_categories {
     return scalar(my @categories = $schema->all_categories);
 }
 
-sub add_category {
-    my ($schema, $option) = @_;
-
-    my $modified_option
-        = __PACKAGE__->_alias_to_real($schema, $option);
-    __PACKAGE__->_check_same_column
-        ($schema, 'taxonomy_name', $modified_option);
-    __PACKAGE__->_check_same_column
-        ($schema, 'taxonomy_slug', $modified_option);
-
-    my $category = $schema->set(category => $modified_option);
-    __PACKAGE__->_build_parent_recursively($schema, $category);
-
-    return $category;
-}
-
-sub _build_parent_recursively {
+sub __build_parent_recursively {
     my ($class, $schema, $category) = @_;
 
     my $parent_category = $category->parent;
     if ($parent_category) {
         $parent_category->_build_children_count;
         $parent_category->_build_descendants_count;
-        $parent_category->update;   # SUPER::update ??
-        __PACKAGE__->_build_parent_recursively($schema, $parent_category);
+        $parent_category->_internal_update;
+        __PACKAGE__->__build_parent_recursively($schema, $parent_category);
     }
 
     return;
 }
 
-sub _alias_to_real {
+sub __alias_to_real {
     my ($class, $schema, $option) = @_;
 
-    my $modified_option = $class->SUPER::_alias_to_real
-                            ($option, $schema->_alias_columns_of_category);
+    my $modified_option = $class->SUPER::__alias_to_real
+                            ($option, $schema->__alias_columns_of_category);
     if (exists $modified_option->{parent}) {
         if (defined $modified_option->{parent}) {
             $modified_option->{parent_id} = $modified_option->{parent}->id;
@@ -115,12 +116,16 @@ sub _alias_to_real {
     return $modified_option;
 }
 
-sub _check_same_column {
+sub __check_same_column {
     my ($class, $schema, $column, $option) = @_;
 
+    my %is_not_same_id
+        = exists $option->{id} ? (id => { '!=' => $option->{id} } )
+        :                        ();
     my @category_of_same_column = $schema->get(category => {
         where   => [
             $column => $option->{$column},
+            %is_not_same_id,
         ],
     });
     return unless @category_of_same_column;
@@ -132,17 +137,17 @@ sub _check_same_column {
 
     require Data::Dumper;
     local $Data::Dumper::Indent = 1;
-    __PACKAGE__->_throw_exception_from_category(
+    __PACKAGE__->__throw_exception_from_category(
         sprintf('column %s is not unique', $column),
         Data::Dumper::Dumper($option),
-        __PACKAGE__->_dump_contestant($contestant),
+        __PACKAGE__->__dump_contestant($contestant),
     );
 }
 
-sub _throw_exception_from_category {
-    my ($schema, $reason, $option, $additional_info) = @_;
+sub __throw_exception_from_category {
+    my ($class, $reason, $option, $additional_info) = @_;
 
-    Carp::croak sprintf <<"TRACE", $reason, $option, $additional_info;
+    Carp::croak sprintf <<"TRACE", $reason, $option, $additional_info || q{};
 
     **** { SimpleLinks::Schema::Mixin::Category 's Exception ****
 Reason     : %s
@@ -152,7 +157,7 @@ Attributes :
 TRACE
 }
 
-sub _dump_contestant {
+sub __dump_contestant {
     my ($class, $contestant) = @_;
 
     return sprintf <<"TRACE", Data::Dumper::Dumper($contestant);
@@ -161,46 +166,61 @@ sub _dump_contestant {
 TRACE
 }
 
-sub alias_columns_of_category {
+sub __alias_columns_of_category {
     my $schema = shift;
 
     return {
-        @{ $schema->_alias_columns_of_taxonomy },
-        @{ $schema->_alias_columns_of_common },
+        @{ $schema->__alias_columns_of_taxonomy },
+        @{ $schema->__alias_columns_of_common },
     };
 }
 
-sub add_website_category {
+sub __add_website_category {
     my ($schema, $option) = @_;
 
     return $schema->set(website_category => $option);
 }
 
-# override $category->update ?
-sub edit_category {
-    my ($schema, $category) = @_;
+# overrided $category->update
+sub __edit_category {
+    my ($schema_class, $category) = @_;
 
-    __PACKAGE__->_check_same_column
-        ($schema, 'taxonomy_name', $category);
-    __PACKAGE__->_check_same_column
-        ($schema, 'taxonomy_slug', $category);
+    my $schema = $schema_class->new;
 
-    # to do: create method '_check_reverse_filiation'
-    die 'xxx'
-        # to do: create method 'is_child_of'
-        if grep {
-            $category->parent->id eq $_->id
-        } $category->children;
+    __PACKAGE__->__check_same_column
+        ($schema, 'taxonomy_name', $category->get_columns);
+    __PACKAGE__->__check_same_column
+        ($schema, 'taxonomy_slug', $category->get_columns);
+    __PACKAGE__->__check_reverse_filiation
+        ($schema, $category);
 
-    $category->SUPER::update;   # can I call?
-    __PACKAGE__->_build_parent_recursively($schema, $category);
+    $category->_internal_update;
+    __PACKAGE__->__build_parent_recursively($schema, $category);
 
     return $category;
 }
 
+sub __check_reverse_filiation {
+    my ($class, $schema, $category) = @_;
+
+    my $parent_id = $category->parent_id;
+
+    return unless defined $parent_id;
+    return if none {
+        $_ eq $parent_id;
+    } $category->child_ids;
+
+    require Data::Dumper;
+    local $Data::Dumper::Indent = 1;
+    __PACKAGE__->__throw_exception_from_category(
+        'category at once parent and child',
+        Data::Dumper::Dumper($category),
+    );
+}
+
+# overrided $category->delete
 # cannot override $schema->delete(category => $category->id)!
-# override $category->delete ?
-sub remove_category {
+sub __remove_category {
     my ($schema, $category) = @_;
 
     # to do: create method '_check_leaf_deleting'
@@ -209,7 +229,7 @@ sub remove_category {
 
     my $parent_category = $category->parent;
     $category->SUPER::delete;   # can I call?
-    __PACKAGE__->_build_parent_recursively($schema, $parent_category);
+    __PACKAGE__->__build_parent_recursively($schema, $parent_category);
 
     return;
 }
@@ -242,6 +262,31 @@ SimpleLinks::Schema::Mixin::Category -
 blah blah blah
 
 
+=head1 METHODS
+
+=head2 add_category
+
+Creates a new category row to C<category> table
+on the regulation database.
+
+Returns created C<category> row.
+
+=head2 all_categories
+
+Returns all category rows from C<category> table
+on the regulation database.
+
+=head2 count_categories
+
+Returns number of category rows in C<category> table
+on the regulation database.
+
+=head2 register_method
+
+B<INTERNAL USE ONLY>.
+For L<Data::Model::Mixin|Data::Model::Mixin> mechanism.
+
+
 =head1 AUTHOR
 
 =over 4
@@ -254,7 +299,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

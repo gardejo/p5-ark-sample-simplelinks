@@ -23,8 +23,8 @@ use DateTime;
 
 sub register_method {
     +{
-        _update_with_timestamp      => \&update_with_timestamp,
-        _alias_columns_of_common    => \&alias_columns_of_common,
+        __update_with_timestamp     => \&__update_with_timestamp,
+        __alias_columns_of_common   => \&__alias_columns_of_common,
     };
 }
 
@@ -34,7 +34,7 @@ sub register_method {
 # ****************************************************************
 
 # common_updated_on以外のカラムが編集されていたらcommon_updated_onも編集する
-sub update_with_timestamp {
+sub __update_with_timestamp {
     my ($schema, $row, $timestamp_column) = @_;
 
     return
@@ -48,7 +48,7 @@ sub update_with_timestamp {
     return $row;
 }
 
-sub alias_columns_of_common {
+sub __alias_columns_of_common {
     my $scalar = shift;
 
     return [
@@ -85,6 +85,16 @@ SimpleLinks::Schema::Mixin::Common -
 blah blah blah
 
 
+
+
+=head1 METHODS
+
+=head2 register_method
+
+B<INTERNAL USE ONLY>.
+For L<Data::Model::Mixin|Data::Model::Mixin> mechanism.
+
+
 =head1 AUTHOR
 
 =over 4
@@ -97,7 +107,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

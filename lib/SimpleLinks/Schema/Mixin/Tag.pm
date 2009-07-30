@@ -35,8 +35,8 @@ sub register_method {
         all_tags                => \&all_tags,
         count_tags              => \&count_tags,
         add_tag                 => \&add_tag,
-        _alias_columns_of_tag   => \&alias_columns_of_tag,
-        _add_website_tag        => \&add_website_tag,
+        __alias_columns_of_tag  => \&__alias_columns_of_tag,
+        __add_website_tag       => \&__add_website_tag,
     };
 }
 
@@ -65,21 +65,21 @@ sub add_tag {
     my ($schema, $option) = @_;
 
     return $schema->set(tag =>
-        __PACKAGE__->SUPER::_alias_to_real
-            ($option, $schema->_alias_columns_of_tag)
+        __PACKAGE__->SUPER::__alias_to_real
+            ($option, $schema->__alias_columns_of_tag)
     );
 }
 
-sub alias_columns_of_tag {
+sub __alias_columns_of_tag {
     my $schema = shift;
 
     return {
-        @{ $schema->_alias_columns_of_taxonomy },
-        @{ $schema->_alias_columns_of_common },
+        @{ $schema->__alias_columns_of_taxonomy },
+        @{ $schema->__alias_columns_of_common },
     };
 }
 
-sub add_website_tag {
+sub __add_website_tag {
     my ($schema, $option) = @_;
 
     return $schema->set(website_tag => $option);
@@ -112,6 +112,36 @@ SimpleLinks::Schema::Mixin::Tag -
 blah blah blah
 
 
+=head1 METHODS
+
+=head2 add_tag
+
+Creates a new tag row to C<tag> table
+on the regulation database.
+
+Returns created C<tag> row.
+
+=head2 all_tags
+
+Returns all tag rows from C<tagy> table
+on the regulation database.
+
+=head2 count_tags
+
+Returns number of tag rows in C<tag> table
+on the regulation database.
+
+=head2 remove_tag
+
+Deletes a existent tag row in C<tag> table
+on the regulation database.
+
+=head2 register_method
+
+B<INTERNAL USE ONLY>.
+For L<Data::Model::Mixin|Data::Model::Mixin> mechanism.
+
+
 =head1 AUTHOR
 
 =over 4
@@ -124,7 +154,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.

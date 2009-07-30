@@ -265,7 +265,7 @@ SimpleLinks::Schema::Column - column schemas
 と明示的に書き込むか、
 
     $row->any_column($any_value);
-    $row->update_with_timestamp;
+    $row->_update_with_timestamp;
 
 という追加メソッドを使います。
 
@@ -284,7 +284,7 @@ L<http://ttt.ermitejo.com/>
 =back
 
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009 by MORIYA Masaki ("Gardejo"),
 L<http://ttt.ermitejo.com>.
