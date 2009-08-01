@@ -31,11 +31,16 @@ use Carp qw();
 
 sub register_method {
     +{
+        add_website                 => \&add_website,
+        create_website              => \&add_website,
+        get_website                 => \&get_website,
         websites                    => \&all_websites,
         all_websites                => \&all_websites,
+        get_websites                => \&get_websites,
         filter_websites             => \&filter_websites,
         count_websites              => \&count_websites,
-        add_website                 => \&add_website,
+        remove_all_websites         => \&remove_all_websites,
+        delete_all_websites         => \&remove_all_websites,
         __alias_columns_of_website  => \&__alias_columns_of_website,
         # ...
     };
@@ -65,6 +70,10 @@ sub add_website {
     return $website;
 }
 
+sub get_website {
+    return $_[0]->__get_row($_[1], __PACKAGE__, 'website');
+}
+
 sub all_websites {
     my $schema = shift;
 
@@ -75,12 +84,18 @@ sub all_websites {
     });
 }
 
+# all_websitesの相手となるfilter_websitesと考えればいいが、
+# Refで返すんだっけ？
+sub get_websites {
+    return $_[0]->__get_rows($_[1], __PACKAGE__, 'website');
+}
+
 sub filter_websites {
     my ($schema, $keys) = @_;
 
-    return $schema->lookup_multi(website => {
-        @$keys,
-    });
+    return $schema->lookup_multi(website =>
+        $keys,
+    );
 }
 
 sub count_websites {
@@ -93,10 +108,21 @@ sub __alias_columns_of_website {
     my $schema = shift;
 
     return {
-        @{ $schema->__alias_columns_of_taxonomy },
+        name => 'title',
         @{ $schema->__alias_columns_of_common },
     };
 }
+
+sub remove_all_websites {
+    my $schema = shift;
+
+    $schema->__remove_all_rows('website');
+    $schema->__remove_all_rows('website_category');
+    $schema->__remove_all_rows('website_tag');
+
+    return;
+}
+
 
 # $website_row->add_categories
 sub __add_categories {
@@ -119,6 +145,7 @@ sub __delete_relations {
 
 sub __modify_relation {
 }
+
 
 
 # ****************************************************************
@@ -157,9 +184,19 @@ on the regulation database.
 
 Returns created C<website> row.
 
+=head2 get_website
+
+Returns a specified website row from C<website> table
+on the regulation database.
+
 =head2 all_websites
 
 Returns all website rows from C<website> table
+on the regulation database.
+
+=head2 get_websites
+
+Returns specified website rows from C<website> table
 on the regulation database.
 
 =head2 filter_websites
@@ -170,6 +207,11 @@ on the regulation database.
 =head2 count_websites
 
 Returns number of website rows in C<website> table
+on the regulation database.
+
+=head2 remove_all_websites
+
+Removes all website rows in C<website> table
 on the regulation database.
 
 =head2 register_method

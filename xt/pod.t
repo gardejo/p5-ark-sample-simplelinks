@@ -1,7 +1,9 @@
 #!perl -T
 
 eval {
-    use Test::Pod 1.40;
+    require Test::Pod;
+    Test::Pod->import;
+    die if Test::Pod->VERSION < 1.40;
 };
 
 Test::More::plan( skip_all =>

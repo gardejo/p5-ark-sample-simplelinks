@@ -14,6 +14,7 @@ use warnings;
 # ****************************************************************
 
 use Carp qw();
+# use Data::Util qw(:check);
 use Scalar::Util qw();
 
 
@@ -27,7 +28,6 @@ sub register_method {
         __delete_taxonomy           => \&__delete_taxonomy,
         _website_ids                => \&__website_ids_of_taxonomy,
         _websites                   => \&__websites_of_taxonomy,
-        __build_websites_count      => \&__build_websites_count,
         __alias_columns_of_taxonomy => \&__alias_columns_of_taxonomy,
     };
 }
@@ -58,19 +58,13 @@ sub __website_ids_of_taxonomy {
 }
 
 sub __websites_of_taxonomy {
-    my ($schema, $taxonomy) = @_;
+    my ($class, $taxonomy) = @_;
 
-    my @website_ids = $taxonomy->website_ids($taxonomy);
+    my @website_ids = $taxonomy->website_ids;
 
-    return unless @website_ids;
-    return $schema->filter_websites(\@website_ids);
-}
-
-sub __build_websites_count {
-    my ($schema, $taxonomy) = @_;
-
-    return $taxonomy->count_websites
-        ( scalar( my @websites = $taxonomy->websites($taxonomy) ) );
+    return [] unless @website_ids;
+    return $taxonomy->{model}->__get_rows
+        (\@website_ids, 'SimpleLinks::Schema::Mixin::Website', 'website');
 }
 
 sub __alias_columns_of_taxonomy {
@@ -88,28 +82,10 @@ sub __add_taxonomy {
     my ($schema, $website_id, $option) = @_;
 
     if (defined $option->{categories}) {
-        foreach my $category_id (
-            map {
-                Scalar::Util::blessed $_ ? $_->id : $_
-            } @{ $option->{categories} }
-        ) {
-            $schema->__add_website_category({
-                website_id  => $website_id,
-                category_id => $category_id,
-            });
-        }
+        $schema->__add_website_category($website_id, $option->{categories});
     }
     if (defined $option->{tags}) {
-        foreach my $tag_id (
-            map {
-                Scalar::Util::blessed $_ ? $_->id : $_
-            } @{ $option->{tags} }
-        ) {
-            $schema->__add_website_tag({
-                website_id => $website_id,
-                tag_id     => $tag_id,
-            });
-        }
+        $schema->__add_website_tag($website_id, $option->{tags});
     }
 
     return;
@@ -117,7 +93,6 @@ sub __add_taxonomy {
 
 sub __delete_taxonomy {
 }
-
 
 
 # ****************************************************************

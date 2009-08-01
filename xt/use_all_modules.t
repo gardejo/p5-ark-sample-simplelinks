@@ -1,7 +1,8 @@
 #!perl -T
 
 eval {
-    use Test::UseAllModules;
+    require Test::UseAllModules;
+    Test::UseAllModules->import;
 };
 
 Test::More::plan( skip_all =>
@@ -9,6 +10,4 @@ Test::More::plan( skip_all =>
     "for testing presence of all manifested modules"
 ) if $@;
 
-BEGIN {
-    all_uses_ok();
-}
+all_uses_ok();

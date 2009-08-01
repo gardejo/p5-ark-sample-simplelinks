@@ -77,6 +77,10 @@ feacures(
         -default    => 0,
         recommends( 'Text::Markdown'    => '0' ),
     ],
+    'Support tag cloud' => [
+        -default    => 0,
+        recommends( 'Data::Cloud'       => '0' ),
+    ],
     'Support XML format for dump' => [
         -default    => 0,
         recommends( 'XML::LibXML'       => '0' ),   # Any XML?

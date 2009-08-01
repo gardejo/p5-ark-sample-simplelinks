@@ -1,3 +1,5 @@
+#!perl -T
+
 use strict;
 use warnings;
 use local::lib;
@@ -21,6 +23,10 @@ END {
     };
     # Because "Permission denied" error may happen on Win32, I don't this test:
     # ok(! -f $Database_Name, 'database file was unlinked');
+    unless (-f $Database_Name) {
+        diag sprintf 'database (%s) was deleted successfully',
+            $Database_Name;
+    }
 }
 
 1;

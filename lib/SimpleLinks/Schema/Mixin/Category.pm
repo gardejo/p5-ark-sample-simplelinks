@@ -14,6 +14,7 @@ use warnings;
 # ****************************************************************
 
 use base qw(
+    SimpleLinks::Schema::Mixin::Taxonomy
     SimpleLinks::Schema::Mixin::Base
 );
 
@@ -23,6 +24,7 @@ use base qw(
 # ****************************************************************
 
 use Carp qw();
+use Data::Util qw(:check);
 use List::MoreUtils qw(none);
 use List::Util qw(first);
 
@@ -35,9 +37,14 @@ sub register_method {
     +{
         add_category                    => \&add_category,
         create_category                 => \&add_category,
+        get_category                    => \&get_category,
         categories                      => \&all_categories,
         all_categories                  => \&all_categories,
+        get_categories                  => \&get_categories,
+        filter_categories               => \&filter_categories,
         count_categories                => \&count_categories,
+        remove_all_categories           => \&remove_all_categories,
+        delete_all_categories           => \&remove_all_categories,
         __edit_category                 => \&__edit_category,
         __update_category               => \&__edit_category,
         __remove_category               => \&__remove_category,
@@ -65,7 +72,15 @@ sub add_category {
     my $category = $schema->set(category => $modified_option);
     __PACKAGE__->__build_parent_recursively($schema, $category);
 
+    # 不要かも
+    $category->count_current_websites;
+    $category->update;
+
     return $category;
+}
+
+sub get_category {
+    return $_[0]->__get_row($_[1], __PACKAGE__, 'category');
 }
 
 sub all_categories {
@@ -76,6 +91,13 @@ sub all_categories {
             id  => 'ASC',
         },
     });
+}
+
+# all_categoriesの相手となるfilter_categoriesと考えればいいが、
+# Refで返すんだっけ？
+# 引数なしならall_cats
+sub get_categories {
+    return $_[0]->__get_rows($_[1], __PACKAGE__, 'category');
 }
 
 sub count_categories {
@@ -175,12 +197,6 @@ sub __alias_columns_of_category {
     };
 }
 
-sub __add_website_category {
-    my ($schema, $option) = @_;
-
-    return $schema->set(website_category => $option);
-}
-
 # overrided $category->update
 sub __edit_category {
     my ($schema_class, $category) = @_;
@@ -234,6 +250,32 @@ sub __remove_category {
     return;
 }
 
+sub remove_all_categories {
+    my $schema = shift;
+
+    $schema->__remove_all_rows('category');
+    $schema->__remove_all_rows('website_category');
+
+    return;
+}
+
+sub __add_website_category {
+    my ($schema, $website_id, $category_queries) = @_;
+
+    foreach my $category ( map {
+        $schema->get_category($_, __PACKAGE__, 'category');
+    } @$category_queries ) {
+        $schema->set(website_category => {
+            website_id  => $website_id,
+            category_id => $category->id,
+        });
+        $category->count_current_websites;
+        $category->update;
+    }
+
+    return;
+}
+
 
 # ****************************************************************
 # return true
@@ -271,14 +313,34 @@ on the regulation database.
 
 Returns created C<category> row.
 
+=head2 get_category
+
+Returns a specified category row from C<category> table
+on the regulation database.
+
 =head2 all_categories
 
 Returns all category rows from C<category> table
 on the regulation database.
 
+=head2 get_categories
+
+Returns specified category rows from C<category> table
+on the regulation database.
+
+=head2 filter_categories
+
+Returns filtered category rows from C<category> table
+on the regulation database.
+
 =head2 count_categories
 
 Returns number of category rows in C<category> table
+on the regulation database.
+
+=head2 remove_all_categories
+
+Removes all category rows in C<category> table
 on the regulation database.
 
 =head2 register_method

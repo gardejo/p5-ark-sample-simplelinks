@@ -1,3 +1,5 @@
+#!perl -T
+
 use strict;
 use warnings;
 use local::lib;
@@ -48,6 +50,7 @@ my $slug = 'slug' . time;
     is( $tags[0]->id, $new_tag->id, 'id ok' );
     is( $tags[0]->name, $name, 'name ok' );
     is( $tags[0]->slug, $slug, 'slug ok' );
+    is( $tags[0]->count_websites, 0, 'websites count ok' );
 }
 
 {

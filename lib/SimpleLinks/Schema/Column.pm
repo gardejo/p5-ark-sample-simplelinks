@@ -49,12 +49,23 @@ column_sugar 'website.uri'
             URI->new($_[0]);
         },
         deflate     => sub {
-            Scalar::Util::blessed $_[0] ? $_[0]->as_string : $_[0];
+            # Scalar::Util::blessed $_[0] ? $_[0]->as_string : $_[0];
+            # return unless defined $_[0];
+            # return if $_[0] eq q{};
+            my $uri = Scalar::Util::blessed $_[0] ? $_[0] : URI->new($_[0]);
+            Carp::croak sprintf(
+                'Attribute (%s) does not pass the type constraint because: ' .
+                'Validation failed for %s failed with value %s',
+                    'uri',
+                    __PACKAGE__,
+                    $uri->as_string
+            ) if ! $uri->scheme || $uri->scheme !~ m{ \A http s? \z }xms;
+            $uri->as_string;
         },
     };
 
 # 題名
-column_sugar 'website.title'
+column_sugar 'website.name'
     => varchar => {
         require     => 1,
     };
@@ -239,7 +250,7 @@ SimpleLinks::Schema::Column - column schemas
 
         column      'website.id' => { auto_increment => 1 };
         column      'website.uri';
-        utf8_column 'website.title';
+        utf8_column 'website.name';
         # ....
     };
 

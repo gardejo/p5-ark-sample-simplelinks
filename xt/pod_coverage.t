@@ -1,7 +1,9 @@
 #!perl -T
 
 eval {
-    use Test::Pod::Coverage 1.08;
+    require Test::Pod::Coverage;
+    Test::Pod::Coverage->import;
+    die if Test::Pod::Coverage->VERSION < 1.08;
 };
 
 Test::More::plan( skip_all =>

@@ -3,7 +3,8 @@
 use FindBin;
 
 eval {
-    use Test::NoTabs;
+    require Test::NoTabs;
+    Test::NoTabs->import;
 };
 
 Test::More::plan( skip_all =>
@@ -14,5 +15,5 @@ Test::More::plan( skip_all =>
 # inc/ModuleInstall/* will die.
 # all_perl_files_ok();
 
-# WTF? cannnot read.
+# cannnot read /lib/* (?)
 all_perl_files_ok("$FindBin::Bin/../lib");

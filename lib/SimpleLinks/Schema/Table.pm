@@ -53,10 +53,11 @@ install_model website => schema {
 
     column      'website.id' => { auto_increment => 1 };
     column      'website.uri';
-    utf8_column 'website.title';
+    utf8_column 'website.name';
     utf8_column 'website.owner';
     utf8_column 'website.introduction';
     utf8_column 'website.comment';
+    alias_column website_name => 'title';
     __PACKAGE__->_columns_of_common;
 
     unique      'uri';
@@ -371,18 +372,19 @@ sub _can_alternative_update {
 }
 
 sub _many_taxonomy_to_many_websites {
-    my $schema = shift;
+    my $class = shift;
 
     add_method website_ids => sub {
-        $schema->_website_ids($_[0]);
+        $class->_website_ids($_[0]);
     };
 
     add_method websites => sub {
-        $schema->_websites($_[0]);
+        # contextでArrayRefかArrayかを変える？
+        @{ $class->_websites($_[0]) };
     };
 
-    add_method _build_websites_count => sub {
-        $schema->__build_websites_count($_[0]);
+    add_method count_current_websites => sub {
+        $_[0]->count_websites(scalar $_[0]->website_ids);
     };
 
     return;

@@ -1,7 +1,7 @@
 #!perl -T
 
-# use strict;
-# use warnings;
+use strict;
+use warnings;
 use local::lib;
 
 use Test::More tests => 1;

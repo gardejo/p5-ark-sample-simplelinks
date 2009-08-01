@@ -1,8 +1,15 @@
 #!perl -T
 
 eval {
-    use Perl::Critic 1.094;             # for equivalent_modules
-    use Test::Perl::Critic;
+    require Perl::Critic;
+    Perl::Critic->import;
+    die if Perl::Critic->VERSION < 1.094;   # for equivalent_modules
+
+    require Test::Perl::Critic;
+    # 'use Any::Moose' and 'use Ark' are same as 'use strict' and 'use warnings'
+    Test::Perl::Critic->import(
+        -profile => 'xt/perlcriticrc',
+    );
 };
 
 Test::More::plan( skip_all =>
@@ -10,9 +17,4 @@ Test::More::plan( skip_all =>
     "for testing PBP compliance"
 ) if $@;
 
-# 'use Any::Moose' and 'use Ark' are same as 'use strict' and 'use warnings'
-Test::Perl::Critic->import(
-    -profile => 'xt/perlcriticrc',
-);
-
-Test::Perl::Critic::all_critic_ok();
+all_critic_ok();

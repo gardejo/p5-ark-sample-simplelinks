@@ -1,5 +1,7 @@
-# use strict;
-# use warnings;
+#!perl -T
+
+use strict;
+use warnings;
 use local::lib;
 
 use Test::More 0.87_01;

@@ -8,8 +8,8 @@ package SimpleLinks::Web::Model::Links;
 use Ark 'Model::Adaptor';   # automatically turn on strict & warnings
 
 __PACKAGE__->config(
-    class => 'SimpleLinks::Service::Links',
-    args  => {
+    class    => 'SimpleLinks::Service::Links',
+    args     => {
         schema_factory => 'Faktro::Schema::Factory',
         connect_info   => {
             backend     => 'SQLite',

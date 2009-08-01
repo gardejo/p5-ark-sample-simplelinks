@@ -1,3 +1,5 @@
+#!perl -T
+
 use strict;
 use warnings;
 use local::lib;
@@ -10,47 +12,23 @@ use Time::HiRes qw(time);
 use lib 'extlib';
 use lib 't/lib';
 
+use SimpleLinks::Test::Category;
 use SimpleLinks::Test::Constant;
 load $Service_Class;
 
 my $links = $Service_Class->new($Builder_Option_Of_Database);
 
 # create new categories these may have parent/children
-my $category_a = $links->add_category({
-    name    => 'name_a' . time,
-    slug    => 'slug_a' . time,
-});
-my $category_b = $links->add_category({
-    name    => 'name_b' . time,
-    slug    => 'slug_b' . time,
-});
-my $category_c = $links->add_category({
-    name    => 'name_c' . time,
-    slug    => 'slug_c' . time,
-    parent  => $category_b,
-});
+my  $category_a = add_cascading_category($links, 'a');
+my  $category_b = add_cascading_category($links, 'b');
+my  $category_c = add_cascading_category($links, 'c', {parent => $category_b});
 ok( $category_c, 'create category has parent ok (c -> b)' );
-my $category_d = $links->add_category({
-    name    => 'name_d' . time,
-    slug    => 'slug_d' . time,
-    parent  => $category_b,
-});
+my  $category_d = add_cascading_category($links, 'd', {parent => $category_b});
 ok( $category_d, 'create category has parent ok (c,d -> b)' );
-my $category_e = $links->add_category({
-    name    => 'name_e' . time,
-    slug    => 'slug_e' . time,
-});
-my $category_f = $links->add_category({
-    name    => 'name_f' . time,
-    slug    => 'slug_f' . time,
-    parent  => $category_e,
-});
+my  $category_e = add_cascading_category($links, 'e');
+my  $category_f = add_cascading_category($links, 'f', {parent => $category_e});
 ok( $category_f, 'create category has parent ok (f -> e)' );
-my $category_g = $links->add_category({
-    name    => 'name_g' . time,
-    slug    => 'slug_g' . time,
-    parent  => $category_f,
-});
+my  $category_g = add_cascading_category($links, 'g', {parent => $category_f});
 ok( $category_g, 'create category has ancestor ok (g -> f -> e)' );
 
 # reload categories to update 'count' cache
