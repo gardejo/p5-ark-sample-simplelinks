@@ -113,7 +113,8 @@ feacures(
 # ================================================================
 # test_requires 'Test::NoTabs'          => '0';
 # test_requires 'Test::Output'          => '0';
-# test_requires 'Test::Perl::Critic'    => '1.094';     # for equivalent_modules
+# test_requires 'Test::Perl'            => '0';                                 
+# test_requires 'Perl::Critic'          => '1.094';     # for equivalent_modules
 # test_requires 'Test::Pod'             => '0';
 # test_requires 'Test::Pod::Coverage'   => '0';
 # test_requires 'Test::Spelling'        => '0';

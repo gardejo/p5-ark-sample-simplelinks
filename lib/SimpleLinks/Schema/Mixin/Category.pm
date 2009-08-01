@@ -72,7 +72,7 @@ sub add_category {
     my $category = $schema->set(category => $modified_option);
     __PACKAGE__->__build_parent_recursively($schema, $category);
 
-    # •s—v‚©‚à
+    # ä¸è¦ã‹ã‚‚
     $category->count_current_websites;
     $category->update;
 
@@ -93,9 +93,9 @@ sub all_categories {
     });
 }
 
-# all_categories‚Ì‘ŠŽè‚Æ‚È‚éfilter_categories‚Æl‚¦‚ê‚Î‚¢‚¢‚ªA
-# Ref‚Å•Ô‚·‚ñ‚¾‚Á‚¯H
-# ˆø”‚È‚µ‚È‚çall_cats
+# all_categoriesã®ç›¸æ‰‹ã¨ãªã‚‹filter_categoriesã¨è€ƒãˆã‚Œã°ã„ã„ãŒã€
+# Refã§è¿”ã™ã‚“ã ã£ã‘ï¼Ÿ
+# å¼•æ•°ãªã—ãªã‚‰all_cats
 sub get_categories {
     return $_[0]->__get_rows($_[1], __PACKAGE__, 'category');
 }
