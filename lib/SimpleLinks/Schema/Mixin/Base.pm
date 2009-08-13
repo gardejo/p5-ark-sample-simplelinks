@@ -52,7 +52,7 @@ sub __get_table_name {
     return $table_name;
 }
 
-# ƒIƒuƒWƒFƒNƒg‚È‚ç‚»‚Ì‚Ü‚ÜA®”‚È‚çƒL[‚ğA‚»‚Ì‘¼‚È‚ç–¼‘O‚ÅŒŸõ
+# ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãªã‚‰ãã®ã¾ã¾ã€æ•´æ•°ãªã‚‰ã‚­ãƒ¼ã‚’ã€ãã®ä»–ãªã‚‰åå‰ã§æ¤œç´¢
 sub __get_row {
     my ($schema, $query, $class, $table) = @_;
 
@@ -76,7 +76,7 @@ sub __get_row {
     }
 }
 
-# ã‹L‚Ì•¡””Å‚ÅAˆÙíƒŠƒXƒg‚Í•s‰Âi“ª‚µ‚©Œ©‚È‚¢j
+# ä¸Šè¨˜ã®è¤‡æ•°ç‰ˆã§ã€ç•°ç¨®ãƒªã‚¹ãƒˆã¯ä¸å¯ï¼ˆé ­ã—ã‹è¦‹ãªã„ï¼‰
 sub __get_rows {
     my ($schema, $queries, $class, $table) = @_;
 
@@ -119,7 +119,7 @@ sub __get_row_id {
     }
 }
 
-# ã‹L‚Ì•¡””Å‚ÅAˆÙíƒŠƒXƒg‚Í•s‰Âi“ª‚µ‚©Œ©‚È‚¢j
+# ä¸Šè¨˜ã®è¤‡æ•°ç‰ˆã§ã€ç•°ç¨®ãƒªã‚¹ãƒˆã¯ä¸å¯ï¼ˆé ­ã—ã‹è¦‹ãªã„ï¼‰
 sub __get_row_ids {
     my ($schema, $queries, $class, $table) = @_;
 
@@ -152,7 +152,7 @@ sub __get_name_column_name {
 }
 
 
-# common_updated_onˆÈŠO‚ÌƒJƒ‰ƒ€‚ª•ÒW‚³‚ê‚Ä‚¢‚½‚çcommon_updated_on‚à•ÒW‚·‚é
+# common_updated_onä»¥å¤–ã®ã‚«ãƒ©ãƒ ãŒç·¨é›†ã•ã‚Œã¦ã„ãŸã‚‰common_updated_onã‚‚ç·¨é›†ã™ã‚‹
 sub __update_with_timestamp {
     my ($schema, $row, $timestamp_column) = @_;
 
@@ -179,16 +179,16 @@ sub __alias_columns_of_common {
 sub __remove_all_rows {
     my ($schema, $table) = @_;
 
-    # $schema->delete‚ğƒtƒbƒN‚µ‚Ä‚¢‚é‚í‚¯‚Å‚Í‚È‚¢iƒtƒbƒN‚Í$row->deletej‚Ì‚Å
-    # –â‘è‚È‚­s‚¯‚éB—á‚¦‚Îcategory‚ÌleafˆÈŠO‚Ìíœ‚à‰Â”\Bcc‚Ì‚Í‚¸B
+    # $schema->deleteã‚’ãƒ•ãƒƒã‚¯ã—ã¦ã„ã‚‹ã‚ã‘ã§ã¯ãªã„ï¼ˆãƒ•ãƒƒã‚¯ã¯$row->deleteï¼‰ã®ã§
+    # å•é¡Œãªãè¡Œã‘ã‚‹ã€‚ä¾‹ãˆã°categoryã®leafä»¥å¤–ã®å‰Šé™¤ã‚‚å¯èƒ½ã€‚â€¦â€¦ã®ã¯ãšã€‚
 
-    # ƒeƒXƒg‚Ícreate, read, update, delete‚Ì‡”Ô‚Å‚Í‚È‚­‚ÄA
-    # create, delete, read, update‚Ì‡”Ô‚ÉÀ{‚·‚é‚Ì‚ª©‘R‚»‚¤B
-    # ƒeƒXƒgŠÔ‚Å‚ÌˆË‘¶i‘O‚ÌƒeƒXƒg‚Åcreate‚µ‚½row‚ğread‚µ‚Äupdate‚µ‚Ädeletej
-    # ‚Íñ‚ª‰ñ‚ç‚È‚­‚È‚è‚»‚¤‚È‚Ì‚ÅA“s“xíœ‚·‚é‚­‚ç‚¢‚Ì•û‚ªŠy‚Å‚Í‚È‚©‚ë‚¤‚©B
+    # ãƒ†ã‚¹ãƒˆã¯create, read, update, deleteã®é †ç•ªã§ã¯ãªãã¦ã€
+    # create, delete, read, updateã®é †ç•ªã«å®Ÿæ–½ã™ã‚‹ã®ãŒè‡ªç„¶ãã†ã€‚
+    # ãƒ†ã‚¹ãƒˆé–“ã§ã®ä¾å­˜ï¼ˆå‰ã®ãƒ†ã‚¹ãƒˆã§createã—ãŸrowã‚’readã—ã¦updateã—ã¦deleteï¼‰
+    # ã¯é¦–ãŒå›ã‚‰ãªããªã‚Šãã†ãªã®ã§ã€éƒ½åº¦å‰Šé™¤ã™ã‚‹ãã‚‰ã„ã®æ–¹ãŒæ¥½ã§ã¯ãªã‹ã‚ã†ã‹ã€‚
 
-    # ˆÓ}‚ÍDELETE FROM table‚È‚Ì‚ÅADELETE (—ñ‹“...) FROM table‚ğ”­s‚µ‚Ä‚¢‚é‚Æ
-    # ‰ßèˆ—‚É‚È‚Á‚Ä‚µ‚Ü‚¤‚½‚ßAŒã‚Å”­sSQL‚ğ’²‚×‚é
+    # æ„å›³ã¯DELETE FROM tableãªã®ã§ã€DELETE (åˆ—æŒ™...) FROM tableã‚’ç™ºè¡Œã—ã¦ã„ã‚‹ã¨
+    # éå‰°å‡¦ç†ã«ãªã£ã¦ã—ã¾ã†ãŸã‚ã€å¾Œã§ç™ºè¡ŒSQLã‚’èª¿ã¹ã‚‹
     foreach my $id (@{ $schema->__all_ids($table) }) {
         $schema->delete($table => $id);
     }
