@@ -2,9 +2,11 @@
 
 use strict;
 use warnings;
+use utf8;
 use local::lib;
 
 use Module::Load;
+use Storable qw(dclone);
 use Test::Exception;
 use Test::More 0.87_01;
 use Time::HiRes qw(time);
@@ -26,7 +28,7 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
     is( $links->count_categories, 0, 'no category ok (count_categories)' );
 }
 
-my $name = 'name' . time;
+my $name = '名称' . time;   # utf8_column
 my $slug = 'slug' . time;
 my $certain_category;
 
@@ -51,7 +53,25 @@ my $certain_category;
     is( $categories[0]->id, $certain_category->id, 'id ok' );
     is( $categories[0]->name, $name, 'name ok' );
     is( $categories[0]->slug, $slug, 'slug ok' );
+    is( $categories[0]->count_websites, 0, 'websites count ok' ); # w/c行き？
 }
+
+{
+    # reload
+    my $before_reload = dclone($certain_category);
+    my $before_count  = $links->count_categories;
+
+    $certain_category->reload;
+    # (parent_id) not exists vs. undef
+    # is_deeply( $before_reload, $certain_category, 'reload ok' );
+    is( $before_reload->id,   $certain_category->id,   'reloaded id ok' );
+    is( $before_reload->name, $certain_category->name, 'reloaded name ok' );
+    is( $before_reload->slug, $certain_category->slug, 'reloaded slug ok' );
+    is( $before_count, $links->count_categories, 'same count ok' );
+}
+
+# todo: to create with other columns (owner, introduction, comment),
+#       except "parent_id".
 
 {
     # exception: same name as existent category
@@ -98,6 +118,8 @@ my $certain_category;
     });
     ok( $new_category, 'create same slug but differed parent ok' );
 }
+
+# todo: to catch "category at once parent and child" exception
 
 
 done_testing();

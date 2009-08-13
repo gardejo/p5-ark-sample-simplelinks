@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl -T
 
 
 # ****************************************************************
@@ -15,7 +15,8 @@ use warnings;
 
 # Add application external library ({MYAPP}/extlib) to @INC.
 use FindBin;
-use lib "$FindBin::Bin/../extlib";
+use Path::Class qw(file);
+use lib file("$FindBin::Bin/../extlib")->cleanup->stringify;    # for -T mode
 
 # This module is in application external library ({MYAPP}/extlib).
 # Add local library (ex. /virtual/{USERNAME}/local/lib) to @INC.
@@ -25,10 +26,10 @@ use local::lib;
 use FindBin::libs;
 
 # These modules are in local library (ex. /virtual/{USERNAME}/local/lib).
-use Getopt::Long;
+use Getopt::Long qw(GetOptions);
 use HTTP::Engine;
 use HTTP::Engine::Middleware;
-use YAML::Any;
+use YAML::Any qw(LoadFile);
 
 
 # ****************************************************************
@@ -52,7 +53,18 @@ $app->setup;
 
 my $mw = HTTP::Engine::Middleware->new;
 $mw->install( 'HTTP::Engine::Middleware::Static' => {
-    regexp  => qr{^/(robots.txt|favicon.ico|(?:css|js|images?)/.+)$},
+    regexp  => qr{
+        \A
+        /
+        (
+            robots\.txt  |
+            favicon\.ico |
+            (?:
+                css | js | images?
+            )/.+
+        )
+        \z
+    }xms,
     docroot => $app->path_to('root'),
 });
 
@@ -72,7 +84,7 @@ HTTP::Engine->new(
 # subroutines
 # ****************************************************************
 
-# Ark::Command::Interfaceを使った方が良かったなぁ……（-h未対応）。
+# Ark::Command::Interfaceを使った方が良かったなぁ……（今は-hに未対応）。
 sub configuration {
     my $config = LoadFile($FindBin::Bin . '/../SimpleLinks.yml') || {};
 
@@ -149,11 +161,12 @@ B<CAVEAT>: Remember to configure C<.bashrc> (or C<.cshrc>, etc.) adequately!
     use FindBin;
     use lib "$FindBin::Bin/../extlib";
 
-is same as
+is substantially same as
 
     use FindBin::libs qw( base=extlib );
 
-But, perl 5.8.8 did not include L<FindBin::libs|FindBin::libs>.
+But, perl 5.8.8 (that was installed in xrea.com and coreserver.jp)
+did not include L<FindBin::libs|FindBin::libs>.
 
 Therefore, this script add C<extlib> to C<@INC> by L<FindBin|FindBin>.
 

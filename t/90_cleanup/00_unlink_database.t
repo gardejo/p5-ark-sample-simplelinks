@@ -16,7 +16,7 @@ plan(tests => 1);
 
 END {
     ok(-f $Database_Name, 'database file exists');
-    diag sprintf 'try to unlink database (%s)',
+    diag sprintf 'Try to unlink database (%s)',
         $Database_Name;
     eval {
         cleanup();
@@ -24,7 +24,7 @@ END {
     # Because "Permission denied" error may happen on Win32, I don't this test:
     # ok(! -f $Database_Name, 'database file was unlinked');
     unless (-f $Database_Name) {
-        diag sprintf 'database (%s) was deleted successfully',
+        diag sprintf 'Database (%s) was deleted successfully',
             $Database_Name;
     }
 }

@@ -2,9 +2,11 @@
 
 use strict;
 use warnings;
+use utf8;
 use local::lib;
 
 use Module::Load;
+use Storable qw(dclone);
 use Test::Exception;
 use Test::More 0.87_01;
 use Time::HiRes qw(time);
@@ -26,7 +28,7 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
     is( $links->count_tags, 0, 'no tag ok (count_tags)' );
 }
 
-my $name = 'name' . time;
+my $name = '名称' . time;   # utf8_column
 my $slug = 'slug' . time;
 
 {
@@ -50,7 +52,25 @@ my $slug = 'slug' . time;
     is( $tags[0]->id, $new_tag->id, 'id ok' );
     is( $tags[0]->name, $name, 'name ok' );
     is( $tags[0]->slug, $slug, 'slug ok' );
-    is( $tags[0]->count_websites, 0, 'websites count ok' );
+    is( $tags[0]->count_websites, 0, 'websites count ok' ); # w/t行き？
+}
+
+{
+    # reload
+    my $new_tag = $links->add_tag({
+        name    => 'name' . time,
+        slug    => 'slug' . time,
+    });
+    my $before_reload = dclone($new_tag);
+    my $before_count  = $links->count_tags;
+
+    $new_tag->reload;
+    # (parent_id) not exists vs. undef
+    # is_deeply( $before_reload, $new_tag, 'reload ok' );
+    is( $before_reload->id,   $new_tag->id,   'reloaded id ok' );
+    is( $before_reload->name, $new_tag->name, 'reloaded name ok' );
+    is( $before_reload->slug, $new_tag->slug, 'reloaded slug ok' );
+    is( $before_count, $links->count_tags, 'same count ok' );
 }
 
 {

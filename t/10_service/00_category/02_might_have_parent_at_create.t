@@ -21,21 +21,29 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
 # create new categories these may have parent/children
 my  $category_a = add_cascading_category($links, 'a');
 my  $category_b = add_cascading_category($links, 'b');
-my  $category_c = add_cascading_category($links, 'c', {parent => $category_b});
+my  $category_c = add_cascading_category($links, 'c',
+                                            {parent => $category_b});
 ok( $category_c, 'create category has parent ok (c -> b)' );
-my  $category_d = add_cascading_category($links, 'd', {parent => $category_b});
+my  $category_d = add_cascading_category($links, 'd',
+                                            {parent => $category_b->id});
 ok( $category_d, 'create category has parent ok (c,d -> b)' );
 my  $category_e = add_cascading_category($links, 'e');
-my  $category_f = add_cascading_category($links, 'f', {parent => $category_e});
+my  $category_f = add_cascading_category($links, 'f',
+                                            {parent_id => $category_e->id});
 ok( $category_f, 'create category has parent ok (f -> e)' );
-my  $category_g = add_cascading_category($links, 'g', {parent => $category_f});
+my  $category_g = add_cascading_category($links, 'g',
+                                            {parent => $category_f->name});
 ok( $category_g, 'create category has ancestor ok (g -> f -> e)' );
 
 # reload categories to update 'count' cache
 # notice: must use alias (foreach $_) instead of copy (foreach my $category)
+# foreach (( $category_a, $category_b, $category_c, $category_d,
+#            $category_e, $category_f, $category_g )) {
+#     $_ = $links->lookup(category => $_->id);
+# }
 foreach (( $category_a, $category_b, $category_c, $category_d,
            $category_e, $category_f, $category_g )) {
-    $_ = $links->lookup(category => $_->id);
+    $_->reload;
 }
 
 # parent_id

@@ -45,8 +45,8 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
 # count = 0の人は配列から除きたい
 # tag cloud用の大きさ（<li class="tag_cloud_item" style="font-size: XX%">）
 # も返すかも。
-# 標準偏差を使う？　中央値を使う？　まさか先頭と末尾の平均を基準とした
-# 増減分割合を使う（かなり微妙）。
+# 標準偏差を使う？　中央値を使う？　先頭と末尾の平均を基準とした増減分割合を
+# 使う？（かなり微妙）
 
 {
     # set websites

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl -T
 
 
 # ****************************************************************
@@ -15,7 +15,8 @@ use warnings;
 
 # Add application external library ({MYAPP}/extlib) to @INC.
 use FindBin;
-use lib "$FindBin::Bin/../extlib";
+use Path::Class qw(file);
+use lib file("$FindBin::Bin/../extlib")->cleanup->stringify;    # for -T mode
 
 # This module is in application external library ({MYAPP}/extlib).
 # Add local library (ex. /virtual/{USERNAME}/local/lib) to @INC.
@@ -26,7 +27,7 @@ use FindBin::libs;
 
 # These modules are in local library (ex. /virtual/{USERNAME}/local/lib).
 use HTTP::Engine;
-use YAML::Any;
+use YAML::Any qw(LoadFile);
 
 
 # ****************************************************************
@@ -43,7 +44,7 @@ use SimpleLinks::Web;
 
 my $app = SimpleLinks::Web->new;
 
-my $config = LoadFile($FindBin::Bin . '/../SimpleLinks.yml');
+my $config = LoadFile($FindBin::Bin . '/../SimpleLinks.yml') || {};
 $config->{dbname} = $FindBin::Bin . '/../' . $config->{dbname};
 
 $app->config( $config );
@@ -100,11 +101,12 @@ Loading resolution order is app-lib, local-lib, app-ext-lib, and default-libs.
     use FindBin;
     use lib "$FindBin::Bin/../extlib";
 
-is same as
+is substantially same as
 
     use FindBin::libs qw( base=extlib );
 
-But, perl 5.8.8 did not include L<FindBin::libs|FindBin::libs>.
+But, perl 5.8.8 (that was installed in xrea.com and coreserver.jp)
+did not include L<FindBin::libs|FindBin::libs>.
 
 Therefore, this script add C<extlib> to C<@INC> by L<FindBin|FindBin>.
 

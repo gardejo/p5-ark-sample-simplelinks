@@ -6,17 +6,13 @@ SimpleLinks - sample application of collection of links (with Ark and Data::Mode
 =head1 INSTALLATION
 
 To install this application,
-first, install module L<Module::Install>
-by the following command:
 
-    cpan Module::Install
-
-next, to make Makefile, build this application and run tests
+first, to make Makefile, build this application and run tests
 by the following command:
 
     cpan -t .
 
-finally, to deploy this application
+next, to deploy this application
 by the following command:
 
     cpan -i .

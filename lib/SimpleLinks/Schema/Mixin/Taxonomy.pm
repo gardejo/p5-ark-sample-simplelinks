@@ -10,12 +10,19 @@ use warnings;
 
 
 # ****************************************************************
+# superclasses
+# ****************************************************************
+
+use base qw(
+    SimpleLinks::Schema::Mixin::Base
+);
+
+
+# ****************************************************************
 # general dependencies
 # ****************************************************************
 
 use Carp qw();
-# use Data::Util qw(:check);
-use Scalar::Util qw();
 
 
 # ****************************************************************
@@ -40,8 +47,8 @@ sub register_method {
 sub __website_ids_of_taxonomy {
     my ($schema, $taxonomy) = @_;
 
-    (my $table_name = Scalar::Util::blessed $taxonomy || q{})
-        =~ s{ \A .+ :: }{}xms;
+    my $table_name = $schema->SUPER::__get_table_name($taxonomy);
+
     my $link_entity = 'website_' . $table_name;
     my $table_id    = $table_name . '_id';
 
@@ -128,23 +135,6 @@ blah blah blah
 
 B<INTERNAL USE ONLY>.
 For L<Data::Model::Mixin|Data::Model::Mixin> mechanism.
-
-
-=head1 SEE ALSO
-
-=over 4
-
-=item Which is fast to replace or split?
-
-    (my $table_name = Scalar::Util::blessed $row) =~ s{ \A .+ :: }{}xms;
-
-vs.
-
-    my $table_name  = (split m{::}xms, Scalar::Util::blessed $row)[-1];
-
-See L<http://gist.github.com/158256>.
-
-=back
 
 
 =head1 AUTHOR

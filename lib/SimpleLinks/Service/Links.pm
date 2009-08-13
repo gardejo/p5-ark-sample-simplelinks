@@ -22,11 +22,13 @@ has 'model' => (
         lookup lookup_multi get set txn_scope
 
         get_category          get_tag         get_website
+        get_category_id       get_tag_id      get_website_id
         create_category       create_tag      create_website
         add_category          add_tag         add_website
         categories            tags            websites
         all_categories        all_tags        all_websites
-        get_categorise        get_tags        get_websites
+        get_categories        get_tags        get_websites
+        get_category_ids      get_tag_ids     get_website_ids
         filter_categories     filter_tags     filter_websites
         count_categories      count_tags      count_websites
         remove_all_categories remove_all_tags remove_all_websites

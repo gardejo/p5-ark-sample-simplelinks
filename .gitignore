@@ -6,6 +6,7 @@ action.cache
 blib/
 extlib/
 inc/
+local/
 pm_to_blib
 *.tmp
 tmp/**/*

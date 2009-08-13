@@ -21,7 +21,7 @@ isa_ok($links, $Service_Class);
 
 ok( ! -f $Database_Name, sprintf('database (%s) not exists', $Database_Name) );
 
-diag sprintf 'create database (%s)',
+diag sprintf 'Create database (%s)',
     $Database_Name;
 my $model = $links->model;
 isa_ok($model, $Model_Class);

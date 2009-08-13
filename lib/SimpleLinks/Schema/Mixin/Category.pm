@@ -25,6 +25,7 @@ use base qw(
 
 use Carp qw();
 use Data::Util qw(:check);
+# use List::MoreUtils qw(apply none);
 use List::MoreUtils qw(none);
 use List::Util qw(first);
 
@@ -38,9 +39,11 @@ sub register_method {
         add_category                    => \&add_category,
         create_category                 => \&add_category,
         get_category                    => \&get_category,
+        get_category_id                 => \&get_category_id,
         categories                      => \&all_categories,
         all_categories                  => \&all_categories,
         get_categories                  => \&get_categories,
+        get_category_ids                => \&get_category_ids,
         filter_categories               => \&filter_categories,
         count_categories                => \&count_categories,
         remove_all_categories           => \&remove_all_categories,
@@ -70,7 +73,7 @@ sub add_category {
         ($schema, 'taxonomy_slug', $modified_option);
 
     my $category = $schema->set(category => $modified_option);
-    __PACKAGE__->__build_parent_recursively($schema, $category);
+    __PACKAGE__->__build_parent_recursively($category);
 
     # 不要かも
     $category->count_current_websites;
@@ -81,6 +84,10 @@ sub add_category {
 
 sub get_category {
     return $_[0]->__get_row($_[1], __PACKAGE__, 'category');
+}
+
+sub get_category_id {
+    return $_[0]->__get_row_id($_[1], __PACKAGE__, 'category');
 }
 
 sub all_categories {
@@ -100,6 +107,10 @@ sub get_categories {
     return $_[0]->__get_rows($_[1], __PACKAGE__, 'category');
 }
 
+sub get_category_ids {
+    return $_[0]->__get_row_ids($_[1], __PACKAGE__, 'category');
+}
+
 sub count_categories {
     my $schema = shift;
 
@@ -107,14 +118,14 @@ sub count_categories {
 }
 
 sub __build_parent_recursively {
-    my ($class, $schema, $category) = @_;
+    my ($schema_class, $category) = @_;
 
     my $parent_category = $category->parent;
     if ($parent_category) {
         $parent_category->_build_children_count;
         $parent_category->_build_descendants_count;
         $parent_category->_internal_update;
-        __PACKAGE__->__build_parent_recursively($schema, $parent_category);
+        __PACKAGE__->__build_parent_recursively($parent_category);
     }
 
     return;
@@ -127,13 +138,20 @@ sub __alias_to_real {
                             ($option, $schema->__alias_columns_of_category);
     if (exists $modified_option->{parent}) {
         if (defined $modified_option->{parent}) {
-            $modified_option->{parent_id} = $modified_option->{parent}->id;
+            $modified_option->{parent_id}
+                = $schema->get_category_id($modified_option->{parent});
+            # $modified_option->{parent_id} = $modified_option->{parent}->id;
         }
         else {
             $modified_option->{parent_id} = undef;
         }
         delete $modified_option->{parent};
     }
+    # else {
+    #     # for dclone
+    #     # ……他にもtaxonomy_descriptionなど、NULL可な列が多くて困った
+    #     $modified_option->{parent_id} = undef;
+    # }
 
     return $modified_option;
 }
@@ -201,7 +219,7 @@ sub __alias_columns_of_category {
 sub __edit_category {
     my ($schema_class, $category) = @_;
 
-    my $schema = $schema_class->new;
+    my $schema = $category->{model};    # $schema_class->new
 
     __PACKAGE__->__check_same_column
         ($schema, 'taxonomy_name', $category->get_columns);
@@ -211,7 +229,7 @@ sub __edit_category {
         ($schema, $category);
 
     $category->_internal_update;
-    __PACKAGE__->__build_parent_recursively($schema, $category);
+    __PACKAGE__->__build_parent_recursively($category);
 
     return $category;
 }
@@ -222,9 +240,12 @@ sub __check_reverse_filiation {
     my $parent_id = $category->parent_id;
 
     return unless defined $parent_id;
+
+    my @child_ids = $category->child_ids;
+    return unless @child_ids;
     return if none {
         $_ eq $parent_id;
-    } $category->child_ids;
+    } @child_ids;
 
     require Data::Dumper;
     local $Data::Dumper::Indent = 1;
@@ -235,17 +256,29 @@ sub __check_reverse_filiation {
 }
 
 # overrided $category->delete
-# cannot override $schema->delete(category => $category->id)!
+# to override $schema->delete(category => $category->id) by way of prevention?
 sub __remove_category {
-    my ($schema, $category) = @_;
+    my ($schema_class, $category, $table_name) = @_;
 
-    # to do: create method '_check_leaf_deleting'
-    die 'xxx'
-        if $category->is_leaf;
+    Carp::croak "Cannot remove category because category is not a leaf"
+        unless $category->is_leaf;
 
-    my $parent_category = $category->parent;
-    $category->SUPER::delete;   # can I call?
-    __PACKAGE__->__build_parent_recursively($schema, $parent_category);
+    my $schema = $category->{model};
+
+    # TODO: transaction
+    $schema->delete($table_name => $category->id);
+    __PACKAGE__->__build_parent_recursively($category);
+
+    my $relation_table_name = 'website_' . $table_name; # website_category
+    my $lookup_column       = $table_name . '_id';      # category_id
+    my @relations = $schema->get($relation_table_name => {
+        where => [
+            $lookup_column => $category->id,
+        ],
+    });
+    foreach my $relation (@relations) {
+        $relation->delete;
+    }
 
     return;
 }
@@ -318,6 +351,11 @@ Returns created C<category> row.
 Returns a specified category row from C<category> table
 on the regulation database.
 
+=head2 get_category_id
+
+Returns an ID of specified category row from C<category> table
+on the regulation database.
+
 =head2 all_categories
 
 Returns all category rows from C<category> table
@@ -326,6 +364,11 @@ on the regulation database.
 =head2 get_categories
 
 Returns specified category rows from C<category> table
+on the regulation database.
+
+=head2 get_category_ids
+
+Returns IDs of specified category rows from C<category> table
 on the regulation database.
 
 =head2 filter_categories

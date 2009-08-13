@@ -1,0 +1,46 @@
+# *** CAVEAT ***
+# STOP!
+# I HAVE NOT FINISHED MY TEST WITH THIS .htaccess FILE
+# ON PRODUCTION ENVIRONMENT YET!
+
+# ****************************************************************
+# This is .htaccess file
+# for perl application SimpleLinks (p5-ark-sample-simplelinks)
+# with CGI on Apache 1.3.37 in "xrea.com" and/or "coreserver.jp".
+#
+# Copyright (c) 2009 by MORIYA Masaki ("Gardejo"), <http://ttt.ermitejo.com>.
+#
+# Usage / How to run:
+#
+#   1) Deploy application directory tree in
+#      "/virtual/{USERNAME}/app" directory.
+#
+#   2) Deploy this .htaccess file in
+#      "/virtual/{USERNAME}/public_html/{APPNAME}" directory.
+#
+#   3) Your customer will access to
+#      "http://{DOMAIN}/{APPNAME}/foo/bar".
+#
+#      Note: In case of {APPNAME} is sub-domain, this URI is
+#      "http://{SUBDOMAIN}/foo/bar".
+#
+#   4) Apache HTTP Server will look on this URI as
+#      "/virtual/{USERNAME}/app/{APPROOT}/script/simplelinks.cgi/foo/bar".
+#
+#   5) Ark web application framework will run action
+#      that was associated with "/foo/bar" (from PATH_INFO).
+#
+#   6) Pray for run!
+#
+# Note:
+#   My production environment is as follows,
+#     {USERNAME}  = ermitejo
+#     {SUBDOMAIN} = links.eorzea.asia
+#     {APPROOT}   = p5-ark-sample-simplelinks
+# ****************************************************************
+
+<IfModule rewrite_module>
+    RewriteEngine   On
+    RewriteCond     %{REQUEST_URI}  !^/?script/simplelinks.cgi
+    RewriteRule     ^(.*)$          /virtual/ermitejo/app/p5-ark-sample-simplelinks/script/simplelinks.cgi/$1   [PT,L]
+</IfModule>

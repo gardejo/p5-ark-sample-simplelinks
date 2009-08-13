@@ -2,11 +2,14 @@
 
 use strict;
 use warnings;
+use utf8;
 use local::lib;
 
 use Module::Load;
+use Storable qw(dclone);
 use Test::Exception;
 use Test::More 0.87_01;
+use Time::HiRes qw(time);
 
 use lib 'extlib';
 use lib 't/lib';
@@ -27,7 +30,7 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
 
 {
     # create a new website
-    my $name = 'foobar';
+    my $name = '名称';  # utf8_column
     my $uri  = 'http://foobar.example/';
     my $new_website = $links->add_website({
         name    => $name,
@@ -46,16 +49,47 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
 
     # created website has same column-values as query
     is( $websites[0]->name, $name, 'name ok' );
-    # diag $uri;
     isa_ok( $websites[0]->uri, 'URI');
     is( $websites[0]->uri->as_string,  $uri, 'uri ok' );
 }
 
-# exception: duplicated URIs
+{
+    # reload
+    my $new_website = $links->add_website({
+        name    => 'name' . time,
+        uri     => 'http://uri.example/' . time,
+    });
+    my $before_reload = dclone($new_website);
+    my $before_count  = $links->count_websites;
 
+    $new_website->reload;
+    # (parent_id) not exists vs. undef
+    # is_deeply( $before_reload, $new_website, 'reload ok' );
+    is( $before_reload->id,   $new_website->id,   'reloaded id ok' );
+    is( $before_reload->name, $new_website->name, 'reloaded name ok' );
+    is( $before_reload->uri,  $new_website->uri,  'reloaded uri ok' );
+    is( $before_count, $links->count_websites, 'same count ok' );
+}
+
+# exception: duplicated URIs
+{
+    my $uri = 'http://uri.example/' . time;
+    my $new_website = $links->add_website({
+        name    => 'name' . time,
+        uri     => $uri,
+    });
+    throws_ok {
+        $links->add_website({
+            name        => 'name' . time,
+            uri         => $uri,
+        });
+    } qr{column uri is not unique},
+        'same uri exception throwed';
+}
 
 # exception: duplicated not an URI
-# あぁ、良く考えたらMoose/MouseのX::Types::URIも通しているね。http, https限定にするか。
+# あぁ、良く考えたらMoose/MouseのX::Types::URIもURIでnew出来れば通しているね。
+# ということでhttp, https限定にする。
 {
     throws_ok {
         $links->add_website({

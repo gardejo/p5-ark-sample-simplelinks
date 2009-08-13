@@ -37,15 +37,21 @@ sub register_method {
         add_tag                 => \&add_tag,
         create_tag              => \&add_tag,
         get_tag                 => \&get_tag,
+        get_tag_id              => \&get_tag_id,
         tags                    => \&all_tags,
         all_tags                => \&all_tags,
         get_tags                => \&get_tags,
+        get_tag_ids             => \&get_tag_ids,
         filter_tags             => \&filter_tags,
         count_tags              => \&count_tags,
         tag_ratings             => \&tag_ratings,
         tag_cloud               => \&tag_ratings,
         remove_all_tags         => \&remove_all_tags,
         delete_all_tags         => \&remove_all_tags,
+        __edit_tag              => \&__edit_tag,
+        __update_tag            => \&__edit_tag,
+        __remove_tag            => \&__remove_tag,
+        __delete_tag            => \&__remove_tag,
         __alias_columns_of_tag  => \&__alias_columns_of_tag,
         __add_website_tag       => \&__add_website_tag,
     };
@@ -75,11 +81,19 @@ sub get_tag {
     return $_[0]->__get_row($_[1], __PACKAGE__, 'tag');
 }
 
+sub get_tag_id {
+    return $_[0]->__get_row_id($_[1], __PACKAGE__, 'tag');
+}
+
 # all_tagsの相手となるfilter_tagsと考えればいいが、
 # Refで返すんだっけ？
 # 引数なしならall_tags
 sub get_tags {
     return $_[0]->__get_rows($_[1], __PACKAGE__, 'tag');
+}
+
+sub get_tag_ids {
+    return $_[0]->__get_row_ids($_[1], __PACKAGE__, 'tag');
 }
 
 sub all_tags {
@@ -127,6 +141,30 @@ sub __alias_columns_of_tag {
     };
 }
 
+# overrided $tag->delete
+# to override $schema->delete(tag => $tag->id) by way of prevention?
+sub __remove_tag {
+    my ($schema_class, $tag, $table_name) = @_;
+
+    my $schema = $tag->{model};
+
+    # TODO: transaction
+    $schema->delete($table_name => $tag->id);
+
+    my $relation_table_name = 'website_' . $table_name; # website_tag
+    my $lookup_column       = $table_name . '_id';      # tag_id
+    my @relations = $schema->get($relation_table_name => {
+        where => [
+            $lookup_column => $tag->id,
+        ],
+    });
+    foreach my $relation (@relations) {
+        $relation->delete;
+    }
+
+    return;
+}
+
 sub remove_all_tags {
     my $schema = shift;
 
@@ -139,6 +177,8 @@ sub remove_all_tags {
 sub __add_website_tag {
     my ($schema, $website_id, $tag_queries) = @_;
 
+    use List::MoreUtils qw(apply);
+    # foreach my $tag ( apply {
     foreach my $tag ( map {
         $schema->get_tag($_, __PACKAGE__, 'tag');
     } @$tag_queries ) {
@@ -195,6 +235,11 @@ Returns created C<tag> row.
 Returns a specified tag row from C<tag> table
 on the regulation database.
 
+=head2 get_tag_id
+
+Returns an ID of specified tag row from C<tag> table
+on the regulation database.
+
 =head2 all_tags
 
 Returns all tag rows from C<tagy> table
@@ -203,6 +248,11 @@ on the regulation database.
 =head2 get_tags
 
 Returns specified tag rows from C<tag> table
+on the regulation database.
+
+=head2 get_tag_ids
+
+Returns IDs of specified tag rows from C<tag> table
 on the regulation database.
 
 =head2 filter_tags

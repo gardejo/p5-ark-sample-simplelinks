@@ -39,6 +39,21 @@ SimpleLinks - sample application of collection of links with Ark and Data::Model
 blah blah blah
 
 
+=head1 ACKNOWLEDGEMENTS
+
+=over 4
+
+=item Daisuke Murase ("typester")
+
+The author of L<Ark|Ark> web application framework.
+
+=item Kazuhiro Osawa ("yappo")
+
+The author of L<Data::Model|Data::Model> data/object mapper.
+
+=back
+
+
 =head1 AUTHOR
 
 =over 4

@@ -1,0 +1,167 @@
+categories :
+
+    - name          : ほげほげ
+      slug          : foo
+
+    - name          : ふがふが
+      slug          : bar
+      description   :
+
+    - name          : 公式
+      slug          : official
+      description   : スクウェア・エニックス社による公式サイトです。
+
+    - name          : データサイト
+      slug          : data
+      description   :
+
+    - name          : 掲示板
+      slug          : bbs
+      description   : 掲示板。説明説明。
+
+    - name          : サーバー別掲示板
+      slug          : server
+      description   : サーバー別掲示板。説明説明。
+      parent        : 掲示板
+
+    - name          : クラス別掲示板
+      slug          : class
+      description   : クラス別掲示板。説明説明。
+      parent        : 掲示板
+
+    - name          : 白魔道士掲示板
+      slug          : white_mage
+      description   : 白魔道士掲示板。説明説明。
+      parent        : クラス別掲示板
+
+tags :
+
+    - name          : ほげ
+      slug          : foo
+      description   : ほげほげ
+
+    - name          : ふが
+      slug          : bar
+      description   : ふがふが
+
+    - name          : お勧め
+      slug          : recommend
+      description   : Gardejoが特にお勧めするサイトです。
+
+    - name          : ツール
+      slug          : tool
+
+    - name          : Windows
+      slug          : windows
+
+    - name          : PS3
+      slug          : ps3
+
+    - name          : ウェブシステム
+      slug          : web_system
+
+    - name          : クラス
+      slug          : class
+      description   : 
+
+    - name          : 前衛
+      slug          : vanguard
+      description   : 
+
+    - name          : 後衛
+      slug          : rearguard
+      description   : 
+
+    - name          : 白魔道士
+      slug          : white_mage
+      description   : 
+
+    - name          : Wiki
+      slug          : wiki
+      description   : ウェブブラウザで書き換え可能な文書群です。参考：[Wikipedia ウィキ](http://ja.wikipedia.org/wiki/ウィキ)……などとしてMarkdown書法で書けます（……の予定）。
+
+websites :
+
+    - name          : 白魔道士掲示板
+      uri           : http://whm.example/
+      categories    :
+        - 白魔道士掲示板
+        # nameのみ可能。slug "server"は使えないので注意！
+        # 勿論CLIでなくWeb I/Fならば内部的にオブジェクトをそのまま渡せる。
+      tags          :
+        - 後衛
+        - 白魔道士
+        - お勧め
+      introduction  : サイト運営者による自己紹介コメント。ほげほげ。
+      comment       : 白魔道士の掲示板。コメントテスト。旧来ジョブ名が使われないことは確実なので、これはあくまでテストデータです。
+
+    - name          : Bahamutサーバー掲示板
+      uri           : http://bahamut.example/
+      categories    :
+        - サーバー別掲示板
+      tags          :
+        - ふが
+      introduction  : サイト運営者による自己紹介コメント。ほげほげ。
+      comment       : Bahamutサーバーの掲示板。コメントテスト。ほげほげ。
+
+    - name          : FINAL FANTASY XIV（日本公式）
+      uri           : http://ja.finalfantasyxiv.com/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : FINAL FANTASY XIV（北米公式）
+      uri           : http://na.finalfantasyxiv.com/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : FINAL FANTASY XIV（ヨーロッパ公式）
+      uri           : http://eu.finalfantasyxiv.com/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : FINAL FANTASY XIV（イギリス公式）
+      uri           : http://eu.finalfantasyxiv.com/en/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : FINAL FANTASY XIV（ドイツ公式）
+      uri           : http://eu.finalfantasyxiv.com/de/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : FINAL FANTASY XIV（フランス公式）
+      uri           : http://eu.finalfantasyxiv.com/fr/
+      owner         : スクウェア・エニックス社
+      categories    :
+        - 公式
+      comment       : ほげ
+
+    - name          : ほげほげ
+      uri           : http://foo.example/
+      owner         : 太郎
+      categories    :
+        - ほげほげ
+        - ふがふが
+      tags          :
+        - ほげ
+        - ふが
+      introduction  : あああああ
+      comment       : ほげ
+
+    - name          : ふがふが
+      uri           : http://bar.example/
+      categories    :
+        - ほげほげ
+      tags          :
+        - ふが
+      comment       : ふが

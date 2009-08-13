@@ -22,10 +22,11 @@ use base qw(
 # general dependencies
 # ****************************************************************
 
+use Carp qw();
 use Data::Model::Mixin modules => [
     'FindOrCreate',
+    '+SimpleLinks::Schema::Mixin::Base',
     '+SimpleLinks::Schema::Mixin::Category',
-    '+SimpleLinks::Schema::Mixin::Common',
     '+SimpleLinks::Schema::Mixin::Tag',
     '+SimpleLinks::Schema::Mixin::Taxonomy',
     '+SimpleLinks::Schema::Mixin::Website',
@@ -65,6 +66,11 @@ install_model website => schema {
     __PACKAGE__->_website_has_many_categories;
     __PACKAGE__->_website_has_many_tags;
 
+    __PACKAGE__->_can_reload('website');
+    __PACKAGE__->_can_alternative_update;
+    __PACKAGE__->_must_delete_with_rebuild('website');
+    __PACKAGE__->_must_update_with_rebuild('website');
+
     __PACKAGE__->_can_update_with_timestamp;
 };
 
@@ -86,8 +92,10 @@ install_model category => schema {
     __PACKAGE__->_category_might_belong_to_parent;
     __PACKAGE__->_many_taxonomy_to_many_websites;
 
+    __PACKAGE__->_can_reload('category');
     __PACKAGE__->_can_alternative_update;
-    __PACKAGE__->_must_update_with_rebuild;
+    __PACKAGE__->_must_delete_with_rebuild('category');
+    __PACKAGE__->_must_update_with_rebuild('category');
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -120,6 +128,10 @@ install_model tag => schema {
     unique      'taxonomy_slug';
 
     __PACKAGE__->_many_taxonomy_to_many_websites;
+
+    __PACKAGE__->_can_reload('tag');
+    __PACKAGE__->_must_delete_with_rebuild('tag');
+    # __PACKAGE__->_must_update_with_rebuild('tag');
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -222,9 +234,29 @@ sub _website_has_many_categories {
     };
 
     add_method categories => sub {
-        return $_[0]->{model}->lookup_multi(category => [
-            $_[0]->category_ids
-        ]);
+        my ($row, $categories) = @_;
+
+        if ($categories) {
+            my $website_category_relations
+                = __PACKAGE__->__modify_categories($row, $categories);
+            return
+                unless $website_category_relations;
+            my @categories = $row->{model}->get(category => {
+                where => [
+                    id => {
+                        IN => [ map {
+                            $_->category_id;
+                        } @$website_category_relations ],
+                    },
+                ],
+            });
+            return \@categories;
+        }
+        else {
+            return $row->{model}->lookup_multi(category => [
+                $row->category_ids,
+            ]);
+        }
     };
 
     return;
@@ -247,9 +279,29 @@ sub _website_has_many_tags {
     };
 
     add_method tags => sub {
-        return $_[0]->{model}->lookup_multi(tag => [
-            $_[0]->tag_ids
-        ]);
+        my ($row, $tags) = @_;
+
+        if ($tags) {
+            my $website_tag_relations
+                = __PACKAGE__->__modify_tags($row, $tags);
+            return
+                unless $website_tag_relations;
+            my @tags = $row->{model}->get(tag => {
+                where => [
+                    id => {
+                        IN => [ map {
+                            $_->tag_id;
+                        } @$website_tag_relations ],
+                    },
+                ],
+            });
+            return \@tags;
+        }
+        else {
+            return $row->{model}->lookup_multi(tag => [
+                $row->tag_ids,
+            ]);
+        }
     };
 
     return;
@@ -351,10 +403,39 @@ sub _category_might_belong_to_parent {
 }
 
 sub _must_update_with_rebuild {
-    my $schema = shift;
+    my ($schema_class, $table_name) = @_;
+
+    my $method = '__edit_' . $table_name;
 
     add_method update => sub {
-        $schema->__edit_category($_[0]);
+        $schema_class->$method($_[0]);
+    };
+
+    return;
+}
+
+sub _must_delete_with_rebuild {
+    my ($schema_class, $table_name) = @_;
+
+    my $method = '__remove_' . $table_name;
+
+    add_method delete => sub {
+        $schema_class->$method($_[0], $table_name);
+        undef $_[0];
+    };
+
+    return;
+}
+
+# for relationships
+sub _can_reload {
+    my ($schema_class, $table_name) = @_;
+
+    add_method reload => sub {
+        my $reloaded_row = $_[0]->{model}->lookup($table_name => $_[0]->id);
+        Carp::croak "Cannot reload $_[0]"
+            unless $reloaded_row;
+        $_[0] = $reloaded_row;
     };
 
     return;

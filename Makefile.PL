@@ -47,13 +47,21 @@ perl_version_from $application_root_module;
 # requires      'FindBin'               => '0';     # > perl 5.003_07
 # requires      'FindBin::libs'         => '0';     # > Ark
 # requires      'Getopt::Long'          => '0';     # > Ark
+# requires      'HTML::Shakan'          => '0';     # soon!
 # requires      'HTTP::Engine'          => '0';     # > Ark
 # requires      'HTTP::Engine::Middleware' => '0';  # > Ark
-  requires      'List::MoreUtils'       => '0.24';  # > 'none' fix, HTML::Shakan
+  requires      'List::Compare'         => '0';
+  requires      'List::MoreUtils'       => '0.22';
+# requires      'List::MoreUtils'       => '0.22';  # > HTML::Shakan
+#                   note: 0.23 has any bugs. 0.24 was dropped from CPAN.
+#                         0.25 is an as yet unstable release.
 # requires      'List::Util'            => '0';     # > perl 5.06_00
 # requires      'Mouse'                 => '0';     # > Ark
 # requires      'MouseX::Types'         => '0';     # > Ark > HTTP::Engine
+# requires      'Path::Class'           => '0.16';  # > Ark
 # requires      'Scalar::Util'          => '1.19';  # > Ark > HTTP::Engine
+# requires      'Storable'              => '0';     # > perl 5.007_003
+# requires      'Taint::Util'           => '0';     # (is not in use)
   requires      'Text::MicroTemplate::Extended' => '0.01001';
 # requires      'URI'                   => '0';     # > Ark
   requires      'local::lib'            => '0';
