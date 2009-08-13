@@ -1,4 +1,4 @@
-#!perl -T
+#!/usr/local/bin/perl -T
 
 
 # ****************************************************************
@@ -15,8 +15,19 @@ use warnings;
 
 # Add application external library ({MYAPP}/extlib) to @INC.
 use FindBin;
-use Path::Class qw(file);
-use lib file("$FindBin::Bin/../extlib")->cleanup->stringify;    # for -T mode
+# use Path::Class qw(file);
+# use lib file("$FindBin::Bin/../extlib")->cleanup->stringify;    # for -T mode
+
+sub untaint_lib {
+    my $path = shift;
+
+    $path =~ m{\A ( [\w/_\.\-:\\]+ ) \z}xms ? $path = $1
+                    : die "invalid path";
+
+    return $path;
+};
+
+use lib untaint_lib("$FindBin::Bin/../extlib");
 
 # This module is in application external library ({MYAPP}/extlib).
 # Add local library (ex. /virtual/{USERNAME}/local/lib) to @INC.
