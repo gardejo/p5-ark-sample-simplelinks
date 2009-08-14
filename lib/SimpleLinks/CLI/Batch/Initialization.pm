@@ -99,7 +99,7 @@ SimpleLinks::CLI::Batch::Initialization -
 
 =head1 DESCRIPTION
 
-このモジュールは、コマンドラインで（バッチで）リンク集のデータベースを一括に（再）作成するためのものです。
+このモジュールは、コマンドラインで（バッチで）リンク集のデータベースを一括で（再）作成するためのものです。
 
 =head1 METHODS
 
@@ -119,7 +119,7 @@ SimpleLinks::CLI::Batch::Initialization -
 
 =head2 YAML::Any and UTF8 flag
 
-YAML::Anyで採用されうるYAML系パーサーおよびリーダーモジュール群のそれぞれは、UTF-8フラグに関わる処理にいくつかの流派があります。
+YAML::Anyで採用されうるYAML系パーサーおよびダンパーモジュール群のそれぞれは、UTF-8フラグに関わる処理にいくつかの流派があります。
 
 このモジュールでは、C<_read_query>メソッドでそれらの差異を吸収しています。
 
