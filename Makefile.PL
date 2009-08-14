@@ -16,7 +16,7 @@ author          'MORIYA Masaki ("Gardejo") <moriya at ermitejo dot com>';
 license_from    $application_root_module;
 resources (
     repository  => 'git://github.com/gardejo/p5-ark-sample-simplelinks.git',
-    bugtracker  => undef,
+    bugtracker  => 'http://github.com/gardejo/p5-ark-sample-simplelinks/issues',
     homepage    => 'http://blog.eorzea.asia/2009/07/post_35.html',
 );
 # use lib 'extlib';
@@ -43,7 +43,11 @@ perl_version_from $application_root_module;
 # requires      'DBI'                   => '0';     # > Data::Model
 # requires      'DateTime'              => '0';     # > HTTP::Engine::Middleware
 # requires      'Encode'                => '1.9801'; # > perl 5.008_001
+# requires      'English'               => '0';     # > perl 5
   requires      'DateTime::Format::MySQL' => '0';
+# requires      'Exception::Class'      => '0';     # > E::C::TryCatch
+  requires      'Exception::Class::TryCatch' => '0';
+# requires      'Filter::Util::Call'    => '0';     # (requires implicitly)
 # requires      'FindBin'               => '0';     # > perl 5.003_07
 # requires      'FindBin::libs'         => '0';     # > Ark
 # requires      'Getopt::Long'          => '0';     # > Ark
@@ -72,7 +76,7 @@ perl_version_from $application_root_module;
 # ================================================================
 # optional dependencies
 # ================================================================
-feacures(
+features(
     'Support E-mail sending' => [
         -default    => 0,
         recommends( 'Email::Send'       => '0' ),
@@ -95,6 +99,11 @@ feacures(
     ],
     'Support YAML format for dump' => [
         -default    => 0,
+        recommends( 'YAML::Any'         => '0' ),
+    ],
+    'Support initialization by batch script' => [
+        -default    => 0,
+      # recommends( 'Class::Inspector'  => '0' ),   # > HTML::Shakan > FV::L
         recommends( 'YAML::Any'         => '0' ),
     ],
 );

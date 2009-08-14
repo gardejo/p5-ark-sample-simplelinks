@@ -34,6 +34,11 @@ SimpleLinks - sample application of collection of links with Ark and Data::Model
     # blah blah blah
 
 
+=head1 VERSION
+
+0.00_00
+
+
 =head1 DESCRIPTION
 
 blah blah blah

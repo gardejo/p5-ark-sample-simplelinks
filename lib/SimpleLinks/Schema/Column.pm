@@ -14,16 +14,10 @@ use warnings;
 # ****************************************************************
 
 use Data::Model::Schema sugar => 'simplelinks';
+use Data::Util qw(:check);
 use DateTime;
 use DateTime::Format::MySQL;    # SQLite3でも使用可能
 use URI;
-
-
-# ****************************************************************
-# class variables
-# ****************************************************************
-
-our $VERSION = '0.00_00';
 
 
 # ****************************************************************
@@ -46,13 +40,10 @@ column_sugar 'website.uri'
     => varchar => {
         require     => 1,
         inflate     => sub {
-            URI->new($_[0]);
+            return URI->new($_[0]);
         },
         deflate     => sub {
-            # Scalar::Util::blessed $_[0] ? $_[0]->as_string : $_[0];
-            # return unless defined $_[0];
-            # return if $_[0] eq q{};
-            my $uri = Scalar::Util::blessed $_[0] ? $_[0] : URI->new($_[0]);
+            my $uri = is_instance($_[0], 'URI') ? $_[0] : URI->new($_[0]);
             Carp::croak sprintf(
                 'Attribute (%s) does not pass the type constraint because: ' .
                 'Validation failed for %s failed with value %s',
@@ -60,7 +51,7 @@ column_sugar 'website.uri'
                     __PACKAGE__,
                     $uri->as_string
             ) if ! $uri->scheme || $uri->scheme !~ m{ \A http s? \z }xms;
-            $uri->as_string;
+            return $uri->as_string;
         },
     };
 
@@ -85,8 +76,8 @@ column_sugar 'website.comment'
     => varchar => {
     };
 
-# 必ずカテゴリに属する、という制約はadd_websiteで行う（生のsetは使わない）か、
-# 「カテゴリ未分類」特殊カテゴリを設ける（前者の方が楽）
+# ★「必ずカテゴリに属する」という制約はadd_websiteで行う（生のsetは使わない）
+# か、「カテゴリ未分類」特殊カテゴリを設ける（前者の方が楽）
 
 # ================================================================
 # カテゴリー
@@ -204,17 +195,17 @@ column_sugar 'common.updated_on'
 sub _elasticity_of_datetime {
     return (
         inflate     => sub {
-            DateTime::Format::MySQL
-                ->parse_datetime($_[0])
-                ->set_time_zone('UTC');
+            return DateTime::Format::MySQL
+                        ->parse_datetime($_[0])
+                        ->set_time_zone('UTC');
         },
         deflate     => sub {
-            DateTime::Format::MySQL
-                ->format_datetime($_[0]->set_time_zone('UTC'));
+            return DateTime::Format::MySQL
+                        ->format_datetime($_[0]->set_time_zone('UTC'));
         },
         default     => sub {
-            DateTime::Format::MySQL
-                ->format_datetime(DateTime->now(time_zone => 'UTC'));
+            return DateTime::Format::MySQL
+                        ->format_datetime(DateTime->now(time_zone => 'UTC'));
         },
     );
 }

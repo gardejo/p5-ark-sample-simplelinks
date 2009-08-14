@@ -51,7 +51,7 @@ sub index : Path Args(0) {
         # $c->res->body('Ark Default Index');
     };
     if (catch my $exception) {
-       $c->res->status(500);
+        $c->res->status(500);
         $c->view('MT')->template('errors/500');
     }
 }

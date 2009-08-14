@@ -15,16 +15,11 @@ use warnings;
 
 # Add application external library ({MYAPP}/extlib) to @INC.
 use FindBin;
-# use Path::Class qw(file);
-# use lib file("$FindBin::Bin/../extlib")->cleanup->stringify;    # for -T mode
-
 my $untaint_path;
 BEGIN {
     $untaint_path = sub {
-        my $path = shift;
-        $path =~ m{\A ( [\w/_\.\-:\\]+ ) \z}xms ? $path = $1
+        $_[0] =~ m{\A ( [\w/_\.\-:\\]+ ) \z}xms ? return $1
                                                 : die "invalid path";
-        return $path;
     };
 }
 use lib &$untaint_path("$FindBin::Bin/../extlib");

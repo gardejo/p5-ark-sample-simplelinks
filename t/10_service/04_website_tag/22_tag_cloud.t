@@ -62,7 +62,7 @@ my $links = $Service_Class->new($Builder_Option_Of_Database);
                'a(1=3), b(0=2), c(0=1) :  ok' );
 }
 
-# use YAML::Syck; die Dump $links->tag_ratings;
+# use YAML::Any; die Dump $links->tag_ratings;
 
 {
     $links->add_website({

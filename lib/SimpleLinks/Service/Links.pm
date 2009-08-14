@@ -17,7 +17,7 @@ has 'model' => (
     is          => 'rw',
     isa         => 'Data::Model',   # SimpleLinks::Schema::Tableに特定しない
     lazy_build  => 1,
-    # qr{}にするかも
+    # handlesはqr{}にするかも
     handles     => [qw(
         lookup lookup_multi get set txn_scope
 

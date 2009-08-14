@@ -23,9 +23,8 @@ use base qw(
 # general dependencies
 # ****************************************************************
 
-use Carp qw();
+use Carp qw(croak);
 use Data::Util qw(:check);
-# use List::MoreUtils qw(apply none);
 use List::MoreUtils qw(none);
 use List::Util qw(first);
 
@@ -54,6 +53,7 @@ sub register_method {
         __delete_category               => \&__remove_category,
         __alias_columns_of_category     => \&__alias_columns_of_category,
         __add_website_category          => \&__add_website_category,
+        __delete_website_category       => \&__delete_website_category,
     };
 }
 
@@ -72,18 +72,22 @@ sub add_category {
     __PACKAGE__->__check_same_column
         ($schema, 'taxonomy_slug', $modified_option);
 
-    my $category = $schema->set(category => $modified_option);
-    __PACKAGE__->__build_parent_recursively($category);
+    my $txn = $schema->txn_scope;
+
+    my $category = $txn->set(category => $modified_option);
+    __PACKAGE__->__build_parent_recursively($category, $txn);
 
     # 不要かも
-    $category->count_current_websites;
-    $category->update;
+    $category->count_current_websites($txn);
+    $category->update($txn);    # overrided internal update
+
+    $txn->commit;
 
     return $category;
 }
 
 sub get_category {
-    return $_[0]->__get_row($_[1], __PACKAGE__, 'category');
+    return $_[0]->__get_row($_[1], __PACKAGE__, 'category', $_[2]);
 }
 
 sub get_category_id {
@@ -118,14 +122,14 @@ sub count_categories {
 }
 
 sub __build_parent_recursively {
-    my ($schema_class, $category) = @_;
+    my ($schema_class, $category, $txn) = @_;
 
-    my $parent_category = $category->parent;
+    my $parent_category = $category->parent($txn);
     if ($parent_category) {
-        $parent_category->_build_children_count;
-        $parent_category->_build_descendants_count;
-        $parent_category->_internal_update;
-        __PACKAGE__->__build_parent_recursively($parent_category);
+        $parent_category->_build_children_count($txn);
+        $parent_category->_build_descendants_count($txn);
+        $parent_category->_internal_update($txn);
+        __PACKAGE__->__build_parent_recursively($parent_category, $txn);
     }
 
     return;
@@ -136,33 +140,30 @@ sub __alias_to_real {
 
     my $modified_option = $class->SUPER::__alias_to_real
                             ($option, $schema->__alias_columns_of_category);
+
     if (exists $modified_option->{parent}) {
         if (defined $modified_option->{parent}) {
             $modified_option->{parent_id}
                 = $schema->get_category_id($modified_option->{parent});
-            # $modified_option->{parent_id} = $modified_option->{parent}->id;
         }
         else {
             $modified_option->{parent_id} = undef;
         }
         delete $modified_option->{parent};
     }
-    # else {
-    #     # for dclone
-    #     # ……他にもtaxonomy_descriptionなど、NULL可な列が多くて困った
-    #     $modified_option->{parent_id} = undef;
-    # }
 
     return $modified_option;
 }
 
 sub __check_same_column {
-    my ($class, $schema, $column, $option) = @_;
+    my ($class, $schema, $column, $option, $handler) = @_;
+
+    $handler ||= $schema;
 
     my %is_not_same_id
         = exists $option->{id} ? (id => { '!=' => $option->{id} } )
         :                        ();
-    my @category_of_same_column = $schema->get(category => {
+    my @category_of_same_column = $handler->get(category => {
         where   => [
             $column => $option->{$column},
             %is_not_same_id,
@@ -187,7 +188,7 @@ sub __check_same_column {
 sub __throw_exception_from_category {
     my ($class, $reason, $option, $additional_info) = @_;
 
-    Carp::croak sprintf <<"TRACE", $reason, $option, $additional_info || q{};
+    croak sprintf <<"TRACE", $reason, $option, $additional_info || q{};
 
     **** { SimpleLinks::Schema::Mixin::Category 's Exception ****
 Reason     : %s
@@ -217,31 +218,31 @@ sub __alias_columns_of_category {
 
 # overrided $category->update
 sub __edit_category {
-    my ($schema_class, $category) = @_;
+    my ($schema_class, $category, $txn) = @_;
 
-    my $schema = $category->{model};    # $schema_class->new
+    my $schema = $category->{model};
 
     __PACKAGE__->__check_same_column
-        ($schema, 'taxonomy_name', $category->get_columns);
+        ($schema, 'taxonomy_name', $category->get_columns, $txn);
     __PACKAGE__->__check_same_column
-        ($schema, 'taxonomy_slug', $category->get_columns);
+        ($schema, 'taxonomy_slug', $category->get_columns, $txn);
     __PACKAGE__->__check_reverse_filiation
-        ($schema, $category);
+        ($schema, $category, $txn);
 
-    $category->_internal_update;
-    __PACKAGE__->__build_parent_recursively($category);
+    $category->_internal_update($txn);
+    __PACKAGE__->__build_parent_recursively($category, $txn);
 
     return $category;
 }
 
 sub __check_reverse_filiation {
-    my ($class, $schema, $category) = @_;
+    my ($class, $schema, $category, $txn) = @_;
 
     my $parent_id = $category->parent_id;
 
     return unless defined $parent_id;
 
-    my @child_ids = $category->child_ids;
+    my @child_ids = $category->child_ids($txn);
     return unless @child_ids;
     return if none {
         $_ eq $parent_id;
@@ -260,25 +261,27 @@ sub __check_reverse_filiation {
 sub __remove_category {
     my ($schema_class, $category, $table_name) = @_;
 
-    Carp::croak "Cannot remove category because category is not a leaf"
+    croak "Cannot remove category because category is not a leaf"
         unless $category->is_leaf;
 
     my $schema = $category->{model};
+    my $txn = $schema->txn_scope;
 
-    # TODO: transaction
-    $schema->delete($table_name => $category->id);
-    __PACKAGE__->__build_parent_recursively($category);
+    $txn->delete($table_name => $category->id);
+    __PACKAGE__->__build_parent_recursively($category, $txn);
 
     my $relation_table_name = 'website_' . $table_name; # website_category
     my $lookup_column       = $table_name . '_id';      # category_id
-    my @relations = $schema->get($relation_table_name => {
+    my @relations = $txn->get($relation_table_name => {
         where => [
             $lookup_column => $category->id,
         ],
     });
     foreach my $relation (@relations) {
-        $relation->delete;
+        $txn->delete($relation_table_name => $relation->id);
     }
+
+    $txn->commit;
 
     return;
 }
@@ -293,17 +296,36 @@ sub remove_all_categories {
 }
 
 sub __add_website_category {
-    my ($schema, $website_id, $category_queries) = @_;
+    my ($schema, $website_id, $category_queries, $handler) = @_;
+
+    $handler ||= $schema;
 
     foreach my $category ( map {
-        $schema->get_category($_, __PACKAGE__, 'category');
+        $schema->get_category($_, $handler);
     } @$category_queries ) {
-        $schema->set(website_category => {
+        $handler->set(website_category => {
             website_id  => $website_id,
             category_id => $category->id,
         });
-        $category->count_current_websites;
-        $category->update;
+        $category->count_current_websites($handler);
+        $category->update($handler);    # overrided internal update
+    }
+
+    return;
+}
+
+sub __delete_website_category {
+    my ($schema, $website_id, $handler) = @_;
+
+    $handler ||= $schema;
+
+    my @website_category_relations = $handler->get(website_category => {
+        where => [
+            website_id => $website_id,
+        ],
+    });
+    foreach my $website_category_relation (@website_category_relations) {
+        $handler->delete(website_category => $website_category_relation->id);
     }
 
     return;

@@ -59,17 +59,17 @@ install_model website => schema {
     utf8_column 'website.introduction';
     utf8_column 'website.comment';
     alias_column website_name => 'title';
-    __PACKAGE__->_columns_of_common;
+    __PACKAGE__->_has_columns_of_common;
 
     unique      'uri';
 
-    __PACKAGE__->_website_has_many_categories;
-    __PACKAGE__->_website_has_many_tags;
+    __PACKAGE__->_has_many_categories;
+    __PACKAGE__->_has_many_tags;
 
     __PACKAGE__->_can_reload('website');
     __PACKAGE__->_can_alternative_update;
-    __PACKAGE__->_must_delete_with_rebuild('website');
-    __PACKAGE__->_must_update_with_rebuild('website');
+    __PACKAGE__->_must_rebuild_when_delete('website');
+    __PACKAGE__->_must_rebuild_when_update('website');
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -84,18 +84,18 @@ install_model category => schema {
     column      'category.parent_id';
     column      'category.count_children';
     column      'category.count_descendants';
-    __PACKAGE__->_columns_of_taxonomy;
-    __PACKAGE__->_columns_of_common;
+    __PACKAGE__->_has_columns_of_taxonomy;
+    __PACKAGE__->_has_columns_of_common;
 
-    __PACKAGE__->_category_has_many_children;
-    __PACKAGE__->_category_has_many_descendants;
-    __PACKAGE__->_category_might_belong_to_parent;
+    __PACKAGE__->_has_many_children;
+    __PACKAGE__->_has_many_descendants;
+    __PACKAGE__->_might_belong_to_parent;
     __PACKAGE__->_many_taxonomy_to_many_websites;
 
     __PACKAGE__->_can_reload('category');
     __PACKAGE__->_can_alternative_update;
-    __PACKAGE__->_must_delete_with_rebuild('category');
-    __PACKAGE__->_must_update_with_rebuild('category');
+    __PACKAGE__->_must_rebuild_when_delete('category');
+    __PACKAGE__->_must_rebuild_when_update('category');
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -109,7 +109,7 @@ install_model website_category => schema {
     column      'website_category.id' => { auto_increment => 1 };
     column      'website.id';
     column      'category.id';
-    __PACKAGE__->_columns_of_common;
+    __PACKAGE__->_has_columns_of_common;
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -121,8 +121,8 @@ install_model tag => schema {
     key         'id';
 
     column      'tag.id' => { auto_increment => 1 };
-    __PACKAGE__->_columns_of_taxonomy;
-    __PACKAGE__->_columns_of_common;
+    __PACKAGE__->_has_columns_of_taxonomy;
+    __PACKAGE__->_has_columns_of_common;
 
     unique      'taxonomy_name';
     unique      'taxonomy_slug';
@@ -130,8 +130,8 @@ install_model tag => schema {
     __PACKAGE__->_many_taxonomy_to_many_websites;
 
     __PACKAGE__->_can_reload('tag');
-    __PACKAGE__->_must_delete_with_rebuild('tag');
-    # __PACKAGE__->_must_update_with_rebuild('tag');
+    __PACKAGE__->_must_rebuild_when_delete('tag');
+    # __PACKAGE__->_must_rebuild_when_update('tag');    # does not need
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -145,7 +145,7 @@ install_model website_tag => schema {
     column      'website_tag.id' => { auto_increment => 1 };
     column      'website.id';
     column      'tag.id';
-    __PACKAGE__->_columns_of_common;
+    __PACKAGE__->_has_columns_of_common;
 
     __PACKAGE__->_can_update_with_timestamp;
 };
@@ -155,26 +155,26 @@ install_model website_tag => schema {
 # universal columns
 # ****************************************************************
 
-sub _columns_of_taxonomy {
-    my $schema = shift;
+sub _has_columns_of_taxonomy {
+    my $schema_class = shift;
 
     column      'taxonomy.slug';
     utf8_column 'taxonomy.name';
     utf8_column 'taxonomy.description';
     column      'taxonomy.count_websites';
 
-    $schema->_alias_columns_of_taxonomy;
+    $schema_class->_has_alias_columns_of_taxonomy;
 
     return;
 }
 
-sub _columns_of_common {
-    my $schema = shift;
+sub _has_columns_of_common {
+    my $schema_class = shift;
 
     column      'common.created_on';
     column      'common.updated_on';
 
-    $schema->_alias_columns_of_common;
+    $schema_class->_has_alias_columns_of_common;
 
     return;
 }
@@ -184,24 +184,26 @@ sub _columns_of_common {
 # universal alias columns
 # ****************************************************************
 
-sub _alias_columns_of_taxonomy {
-    my $schema = shift;
+sub _has_alias_columns_of_taxonomy {
+    my $schema_class = shift;
 
-    $schema->_set_alias_columns($schema->__alias_columns_of_taxonomy);
+    $schema_class->_set_alias_columns
+        ($schema_class->__alias_columns_of_taxonomy);
 
     return;
 }
 
-sub _alias_columns_of_common {
-    my $schema = shift;
+sub _has_alias_columns_of_common {
+    my $schema_class = shift;
 
-    $schema->_set_alias_columns($schema->__alias_columns_of_common);
+    $schema_class->_set_alias_columns
+        ($schema_class->__alias_columns_of_common);
 
     return;
 }
 
 sub _set_alias_columns {
-    my ($schema, $alias_columns) = @_;
+    my ($schema_class, $alias_columns) = @_;
 
     while(
         my ($real_column, $alias_column) = (splice @$alias_columns, 0, 2)
@@ -217,8 +219,8 @@ sub _set_alias_columns {
 # relationships
 # ****************************************************************
 
-sub _website_has_many_categories {
-    my $schema = shift;
+sub _has_many_categories {
+    my $schema_class = shift;
 
     add_method category_ids => sub {
         return map {
@@ -236,7 +238,7 @@ sub _website_has_many_categories {
     add_method categories => sub {
         my ($row, $categories) = @_;
 
-        if ($categories) {
+        if ($categories) {  # setter
             my $website_category_relations
                 = __PACKAGE__->__modify_categories($row, $categories);
             return
@@ -252,7 +254,7 @@ sub _website_has_many_categories {
             });
             return \@categories;
         }
-        else {
+        else {              # getter
             return $row->{model}->lookup_multi(category => [
                 $row->category_ids,
             ]);
@@ -262,8 +264,8 @@ sub _website_has_many_categories {
     return;
 }
 
-sub _website_has_many_tags {
-    my $schema = shift;
+sub _has_many_tags {
+    my $schema_class = shift;
 
     add_method tag_ids => sub {
         return map {
@@ -281,7 +283,7 @@ sub _website_has_many_tags {
     add_method tags => sub {
         my ($row, $tags) = @_;
 
-        if ($tags) {
+        if ($tags) {    # setter
             my $website_tag_relations
                 = __PACKAGE__->__modify_tags($row, $tags);
             return
@@ -297,7 +299,7 @@ sub _website_has_many_tags {
             });
             return \@tags;
         }
-        else {
+        else {          # getter
             return $row->{model}->lookup_multi(tag => [
                 $row->tag_ids,
             ]);
@@ -307,17 +309,21 @@ sub _website_has_many_tags {
     return;
 }
 
-sub _category_has_many_children {
-    my $schema = shift;
+sub _has_many_children {
+    my $schema_class = shift;
 
     add_method child_ids => sub {
         return map {
             $_->id;
-        } $_[0]->children;
+        } $_[0]->children($_[1]);
     };
 
     add_method children => sub {
-        return $_[0]->{model}->get(category => {
+        my ($row, $handler) = @_;
+
+        $handler ||= $row->{model};
+
+        return $handler->get(category => {
             where => [
                 parent_id => $_[0]->id,
             ],
@@ -329,7 +335,7 @@ sub _category_has_many_children {
 
     add_method _build_children_count => sub {
         return $_[0]->count_children
-            ( scalar( my @children = $_[0]->children ) );
+            ( scalar( my @children = $_[0]->children($_[1]) ) );
     };
 
     add_method is_leaf => sub {
@@ -347,8 +353,8 @@ sub _category_has_many_children {
     return;
 }
 
-sub _category_has_many_descendants {
-    my $schema = shift;
+sub _has_many_descendants {
+    my $schema_class = shift;
 
     add_method descendant_ids => sub {
         return map {
@@ -357,12 +363,12 @@ sub _category_has_many_descendants {
     };
 
     add_method descendants => sub {
-        my $row = shift;
+        my ($row, $txn) = @_;
 
         my @descendants;
-        foreach my $immediate_child ($row->children) {
+        foreach my $immediate_child ($row->children($txn)) {
             push @descendants,
-                $immediate_child, $immediate_child->descendants;
+                $immediate_child, $immediate_child->descendants($txn);
         }
 
         return @descendants;
@@ -370,19 +376,23 @@ sub _category_has_many_descendants {
 
     add_method _build_descendants_count => sub {
         return $_[0]->count_descendants
-            ( scalar( my @descendants = $_[0]->descendants ) );
+            ( scalar( my @descendants = $_[0]->descendants($_[1]) ) );
     };
 
     return;
 }
 
-sub _category_might_belong_to_parent {
-    my $schema = shift;
+sub _might_belong_to_parent {
+    my $schema_class = shift;
 
     add_method parent => sub {
-        my $parent_id = $_[0]->parent_id;
+        my ($row, $handler) = @_;
+
+        $handler ||= $row->{model};
+        my $parent_id = $row->parent_id;
+
         return unless defined $parent_id;
-        return $_[0]->{model}->lookup(category =>
+        return $handler->lookup(category =>
             $parent_id
         );
     };
@@ -402,32 +412,55 @@ sub _category_might_belong_to_parent {
     return;
 }
 
-sub _must_update_with_rebuild {
+sub _must_rebuild_when_update {
     my ($schema_class, $table_name) = @_;
 
     my $method = '__edit_' . $table_name;
 
     add_method update => sub {
-        $schema_class->$method($_[0]);
+        $schema_class->$method($_[0], $_[1]);
     };
 
     return;
 }
 
-sub _must_delete_with_rebuild {
+sub _must_rebuild_when_delete {
     my ($schema_class, $table_name) = @_;
 
     my $method = '__remove_' . $table_name;
 
     add_method delete => sub {
-        $schema_class->$method($_[0], $table_name);
+        $schema_class->$method($_[0], $table_name, $_[1]);
         undef $_[0];
     };
 
     return;
 }
 
-# for relationships
+sub _many_taxonomy_to_many_websites {
+    my $schema_class = shift;
+
+    add_method website_ids => sub {
+        $schema_class->_website_ids($_[0], $_[1]);
+    };
+
+    add_method websites => sub {
+        # contextでArrayRefかArrayかを変える？
+        @{ $schema_class->_websites($_[0]) };
+    };
+
+    add_method count_current_websites => sub {
+        $_[0]->count_websites(scalar $_[0]->website_ids($_[1]));
+    };
+
+    return;
+}
+
+
+# ****************************************************************
+# miscellaneous methods
+# ****************************************************************
+
 sub _can_reload {
     my ($schema_class, $table_name) = @_;
 
@@ -442,45 +475,23 @@ sub _can_reload {
 }
 
 sub _can_alternative_update {
-    my $schema = shift;
+    my $schema_class = shift;
 
     add_method _internal_update => sub {
-        my $row = shift;
-        $row->{model}->update($row, @_);
+        my ($row, $handler) = @_;
+
+        $handler ||= $row->{model};
+        $handler->update($row);
     };
 
     return;
 }
-
-sub _many_taxonomy_to_many_websites {
-    my $class = shift;
-
-    add_method website_ids => sub {
-        $class->_website_ids($_[0]);
-    };
-
-    add_method websites => sub {
-        # contextでArrayRefかArrayかを変える？
-        @{ $class->_websites($_[0]) };
-    };
-
-    add_method count_current_websites => sub {
-        $_[0]->count_websites(scalar $_[0]->website_ids);
-    };
-
-    return;
-}
-
-
-# ****************************************************************
-# miscellaneous methods
-# ****************************************************************
 
 sub _can_update_with_timestamp {
-    my $schema = shift;
+    my $schema_class = shift;
 
     add_method _update_with_timestamp => sub {
-        $schema->__update_with_timestamp($_[0], 'common_updated_on');
+        $schema_class->__update_with_timestamp($_[0], 'common_updated_on');
     };
 }
 
@@ -598,12 +609,20 @@ C<< $row->update >>を上書きして、以下のように暗黙的に更新日�
 
 C<< $model->set >>時にはC<< alias_column >>されたエイリアスでの格納は不可能（？）。
 
-=head2 Relationship
+=head2 Relationships
 
-C<belongs_to>, C<has_many>, C<might_have>, C<has_one>, C<many_to_many>は、単なる命名規則に過ぎません。
+このクラスでは、手動で関係(relationships)を定義しています。
 
-なお、それらのリレーション実現メソッドは、本クラスに実装しなければなりません。。
+なお、このクラスのクラスメソッドに散見されるC<belongs_to>, C<has_many>, C<might_have>, C<has_one>, C<many_to_many>は、単なる命名規則に過ぎません。
+
+これらのリレーション実現メソッドは、本クラスに実装しなければなりません。。
 これは、メソッドを生やす行オブジェクトを特定するC<add_method>関数内の、C<caller>による実装に準拠する必要があるためです。
+
+L<Data::Model|Data::Model>のリレーション対応版が出来た場合には、当然ながらこれらの手動定義は破棄して書き直します。
+
+=head2 Test::Synopsis
+
+L<SYNOPSYS|/"SYNOPSIS">セクションの子セクション（C<=head2 Directly (from CLI)>など）は作れないので留意します。
 
 
 =head1 AUTHOR

@@ -19,13 +19,6 @@ use base qw(
 
 
 # ****************************************************************
-# general dependencies
-# ****************************************************************
-
-use Carp qw();
-
-
-# ****************************************************************
 # register
 # ****************************************************************
 
@@ -45,16 +38,18 @@ sub register_method {
 # ****************************************************************
 
 sub __website_ids_of_taxonomy {
-    my ($schema, $taxonomy) = @_;
+    my ($schema_class, $taxonomy, $handler) = @_;
 
-    my $table_name = $schema->SUPER::__get_table_name($taxonomy);
+    my $schema = $taxonomy->{model};
+    my $table_name = $schema->__get_table_name($taxonomy);
 
+    $handler ||= $schema;
     my $link_entity = 'website_' . $table_name;
     my $table_id    = $table_name . '_id';
 
     return map {
         $_->website_id;
-    } $taxonomy->{model}->get($link_entity => {
+    } $handler->get($link_entity => {
         where => [
             $table_id  => $taxonomy->id,
         ],
@@ -65,7 +60,7 @@ sub __website_ids_of_taxonomy {
 }
 
 sub __websites_of_taxonomy {
-    my ($class, $taxonomy) = @_;
+    my ($schema_class, $taxonomy) = @_;
 
     my @website_ids = $taxonomy->website_ids;
 
@@ -75,7 +70,7 @@ sub __websites_of_taxonomy {
 }
 
 sub __alias_columns_of_taxonomy {
-    my $schema = shift;
+    my $schema_class = shift;
 
     return [
         taxonomy_slug           => 'slug',
@@ -86,19 +81,29 @@ sub __alias_columns_of_taxonomy {
 }
 
 sub __add_taxonomy {
-    my ($schema, $website_id, $option) = @_;
+    my ($schema, $website_id, $option, $txn) = @_;
 
     if (defined $option->{categories}) {
-        $schema->__add_website_category($website_id, $option->{categories});
+        $schema->__add_website_category
+                    ($website_id, $option->{categories}, $txn);
     }
     if (defined $option->{tags}) {
-        $schema->__add_website_tag($website_id, $option->{tags});
+        $schema->__add_website_tag
+                    ($website_id, $option->{tags}, $txn);
     }
 
     return;
 }
 
 sub __delete_taxonomy {
+    my ($schema, $website_id, $txn) = @_;
+
+    $schema->__delete_website_category
+                ($website_id, $txn);
+    $schema->__delete_website_tag
+                ($website_id, $txn);
+
+    return;
 }
 
 

@@ -22,7 +22,6 @@ use base qw(
 # general dependencies
 # ****************************************************************
 
-use Carp qw();
 use List::Compare;
 
 
@@ -70,11 +69,14 @@ sub add_website {
         = $schema->SUPER::__separate_taxonomy_from
             ($modified_option, [qw(categories tags)]);
 
-    my $website = $schema->set(website => $modified_option);
+    my $txn = $schema->txn_scope;
 
+    my $website = $txn->set(website => $modified_option);
     if (keys %$taxonomy_option) {
-        $schema->__add_taxonomy($website->id, $taxonomy_option);
+        $schema->__add_taxonomy($website->id, $taxonomy_option, $txn);
     }
+
+    $txn->commit;
 
     return $website;
 }
@@ -110,9 +112,7 @@ sub get_website_ids {
 sub filter_websites {
     my ($schema, $keys) = @_;
 
-    return $schema->lookup_multi(website =>
-        $keys,
-    );
+    return $schema->lookup_multi(website => $keys);
 }
 
 sub count_websites {
@@ -135,9 +135,12 @@ sub __edit_website {
     my ($schema_class, $website) = @_;
 
     my $schema = $website->{model};    # $schema_class->new
+    my $txn = $schema->txn_scope;
 
     # Note: same uri was restricted by Data::Model's unique
-    $website->_internal_update;
+    $website->_internal_update($txn);
+
+    $txn->commit;
 
     return $website;
 }
@@ -148,27 +151,12 @@ sub __remove_website {
     my ($schema_class, $website, $table_name) = @_;
 
     my $schema = $website->{model};
+    my $txn = $schema->txn_scope;
 
-    # TODO: transaction
-    $schema->delete($table_name => $website->id);
+    $txn->delete($table_name => $website->id);
+    $schema->__delete_taxonomy($website->id, $txn);
 
-    my @website_category_relations = $schema->get(website_category => {
-        where => [
-            website_id => $website->id,
-        ],
-    });
-    foreach my $website_category_relation (@website_category_relations) {
-        $website_category_relation->delete;
-    }
-
-    my @website_tag_relations = $schema->get(website_tag => {
-        where => [
-            website_id => $website->id,
-        ],
-    });
-    foreach my $website_tag_relation (@website_tag_relations) {
-        $website_tag_relation->delete;
-    }
+    $txn->commit;
 
     return;
 }
@@ -221,12 +209,16 @@ sub __modify_categories {
         $relation->next->delete;
     }
 
+    my $txn = $schema->txn_scope;
+
     foreach my $adding_category_id ($comparison->get_complement) {
-        $schema->set(website_category => {
+        $txn->set(website_category => {
             website_id  => $website->id,
             category_id => $adding_category_id,
         });
     }
+
+    $txn->commit;
 
     # same to getter（※未テスト！）
     return [
@@ -276,12 +268,16 @@ sub __modify_tags {
         $relation->next->delete;
     }
 
+    my $txn = $schema->txn_scope;
+
     foreach my $adding_tag_id ($comparison->get_complement) {
-        $schema->set(website_tag => {
+        $txn->set(website_tag => {
             website_id => $website->id,
             tag_id     => $adding_tag_id,
         });
     }
+
+    $txn->commit;
 
     # same to getter（※未テスト！）
     return [
@@ -292,29 +288,6 @@ sub __modify_tags {
         })
     ];
 }
-
-# $website_row->add_categories
-sub __add_categories {
-}
-
-sub __delete_categories {
-}
-
-sub __add_tags {
-}
-
-sub __add_relations {
-}
-
-sub __delete_website {
-}
-
-sub __delete_relations {
-}
-
-sub __modify_relation {
-}
-
 
 
 # ****************************************************************

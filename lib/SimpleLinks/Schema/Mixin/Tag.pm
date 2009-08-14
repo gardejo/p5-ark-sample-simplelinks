@@ -23,7 +23,6 @@ use base qw(
 # general dependencies
 # ****************************************************************
 
-use Carp qw();
 use Data::Util qw(:check);
 use Module::Load;
 
@@ -54,6 +53,7 @@ sub register_method {
         __delete_tag            => \&__remove_tag,
         __alias_columns_of_tag  => \&__alias_columns_of_tag,
         __add_website_tag       => \&__add_website_tag,
+        __delete_website_tag    => \&__delete_website_tag,
     };
 }
 
@@ -65,6 +65,8 @@ sub register_method {
 sub add_tag {
     my ($schema, $option) = @_;
 
+    # 今のところトランザクション処理は不要
+
     my $tag = $schema->set(tag =>
         __PACKAGE__->SUPER::__alias_to_real
             ($option, $schema->__alias_columns_of_tag)
@@ -72,13 +74,13 @@ sub add_tag {
 
     # 不要かも
     $tag->count_current_websites;
-    $tag->update;
+    $tag->update;   # tag does not need to override 'update'
 
     return $tag;
 }
 
 sub get_tag {
-    return $_[0]->__get_row($_[1], __PACKAGE__, 'tag');
+    return $_[0]->__get_row($_[1], __PACKAGE__, 'tag', $_[2]);
 }
 
 sub get_tag_id {
@@ -147,20 +149,22 @@ sub __remove_tag {
     my ($schema_class, $tag, $table_name) = @_;
 
     my $schema = $tag->{model};
+    my $txn = $schema->txn_scope;
 
-    # TODO: transaction
-    $schema->delete($table_name => $tag->id);
+    $txn->delete($table_name => $tag->id);
 
     my $relation_table_name = 'website_' . $table_name; # website_tag
     my $lookup_column       = $table_name . '_id';      # tag_id
-    my @relations = $schema->get($relation_table_name => {
+    my @relations = $txn->get($relation_table_name => {
         where => [
             $lookup_column => $tag->id,
         ],
     });
     foreach my $relation (@relations) {
-        $relation->delete;
+        $txn->delete($relation_table_name => $relation->id);
     }
+
+    $txn->commit;
 
     return;
 }
@@ -175,19 +179,36 @@ sub remove_all_tags {
 }
 
 sub __add_website_tag {
-    my ($schema, $website_id, $tag_queries) = @_;
+    my ($schema, $website_id, $tag_queries, $handler) = @_;
 
-    use List::MoreUtils qw(apply);
-    # foreach my $tag ( apply {
+    $handler ||= $schema;
+
     foreach my $tag ( map {
-        $schema->get_tag($_, __PACKAGE__, 'tag');
+        $schema->get_tag($_, $handler);
     } @$tag_queries ) {
-        $schema->set(website_tag => {
+        $handler->set(website_tag => {
             website_id  => $website_id,
             tag_id      => $tag->id,
         });
-        $tag->count_current_websites;
-        $tag->update;
+        $tag->count_current_websites($handler);
+        $handler->update($tag);     # tag does not need to override 'update'
+    }
+
+    return;
+}
+
+sub __delete_website_tag {
+    my ($schema, $website_id, $handler) = @_;
+
+    $handler ||= $schema;
+
+    my @website_tag_relations = $handler->get(website_tag => {
+        where => [
+            website_id => $website_id,
+        ],
+    });
+    foreach my $website_tag_relation (@website_tag_relations) {
+        $handler->delete(website_tag => $website_tag_relation->id);
     }
 
     return;

@@ -13,10 +13,10 @@ use warnings;
 # general dependencies
 # ****************************************************************
 
-use Carp qw();
+use Carp qw(croak);
 use Data::Util qw(:check);
 use DateTime;
-use Scalar::Util qw();
+use Scalar::Util qw(blessed);
 use Storable qw(dclone);
 
 
@@ -26,6 +26,7 @@ use Storable qw(dclone);
 
 sub register_method {
     +{
+        __get_table_name            => \&__get_table_name,
         __get_row                   => \&__get_row,
         __get_rows                  => \&__get_rows,
         __get_row_id                => \&__get_row_id,
@@ -46,7 +47,7 @@ sub register_method {
 sub __get_table_name {
     my ($schema, $row) = @_;
 
-    (my $table_name = Scalar::Util::blessed $row || q{})
+    (my $table_name = blessed $row || q{})
         =~ s{ \A .+ :: }{}xms;
 
     return $table_name;
@@ -54,24 +55,25 @@ sub __get_table_name {
 
 # オブジェクトならそのまま、整数ならキーを、その他なら名前で検索
 sub __get_row {
-    my ($schema, $query, $class, $table) = @_;
+    my ($schema, $query, $class, $table, $handler) = @_;
+
+    $handler ||= $schema;
 
     if ( is_instance($query, 'Data::Model::Row') ) {
-        # return $query;
         return dclone($query);
     }
     elsif ( is_integer($query) ) {
-        return $schema->lookup( $table => $query );
+        return $handler->lookup( $table => $query );
     }
     else {
-        my $name = __PACKAGE__->__get_name_column_name($class);
-        my @rows = $schema->get( $table => { where => [ $name => $query ] } );
-        die sprintf 'row (%s) not found from table (%s)',
-            $query, $table
-                unless @rows;
-        die 'more than one (%d) row selected from table (%s)',
-            scalar (@rows), $table
-                if scalar @rows > 1;
+        my $name = __PACKAGE__->__get_column_name_about_name($class);
+        my @rows = $handler->get( $table => { where => [ $name => $query ] } );
+        croak sprintf 'row (%s) not found from table (%s)',
+                $query, $table
+                    unless @rows;
+        croak sprintf 'more than one (%d) row selected from table (%s)',
+                scalar (@rows), $table
+                    if scalar @rows > 1;
         return $rows[0];
     }
 }
@@ -87,7 +89,7 @@ sub __get_rows {
         return [ $schema->lookup_multi( $table => $queries ) ];
     }
     else {
-        my $name = __PACKAGE__->__get_name_column_name($class);
+        my $name = __PACKAGE__->__get_column_name_about_name($class);
         my @rows;
         foreach my $query (@$queries) {
             push @rows,
@@ -107,14 +109,14 @@ sub __get_row_id {
         return $query;
     }
     else {
-        my $name = __PACKAGE__->__get_name_column_name($class);
+        my $name = __PACKAGE__->__get_column_name_about_name($class);
         my @rows = $schema->get( $table => { where => [ $name => $query ] } );
-        die sprintf 'row (%s) not found from table (%s)',
-            $query, $table
-                unless @rows;
-        die 'more than one (%d) row selected from table (%s)',
-            scalar (@rows), $table
-                if scalar @rows > 1;
+        croak sprintf 'row (%s) not found from table (%s)',
+                $query, $table
+                    unless @rows;
+        croak sprintf 'more than one (%d) row selected from table (%s)',
+                scalar (@rows), $table
+                    if scalar @rows > 1;
         return $rows[0]->id;
     }
 }
@@ -132,7 +134,7 @@ sub __get_row_ids {
         return $queries;
     }
     else {
-        my $name = __PACKAGE__->__get_name_column_name($class);
+        my $name = __PACKAGE__->__get_column_name_about_name($class);
         my @row_ids;
         foreach my $query (@$queries) {
             push @row_ids,
@@ -143,7 +145,7 @@ sub __get_row_ids {
     }
 }
 
-sub __get_name_column_name {
+sub __get_column_name_about_name {
     my ($invocant, $class) = @_;
 
     return $class->isa('SimpleLinks::Schema::Mixin::Taxonomy')
@@ -168,7 +170,7 @@ sub __update_with_timestamp {
 }
 
 sub __alias_columns_of_common {
-    my $schema = shift;
+    my $invocant = shift;   # schema or schema_class
 
     return [
         common_created_on => 'created_on',
@@ -189,17 +191,24 @@ sub __remove_all_rows {
 
     # 意図はDELETE FROM tableなので、DELETE (列挙...) FROM tableを発行していると
     # 過剰処理になってしまうため、後で発行SQLを調べる
-    foreach my $id (@{ $schema->__all_ids($table) }) {
-        $schema->delete($table => $id);
+
+    my $txn = $schema->txn_scope;
+
+    foreach my $id (@{ $schema->__all_ids($table, $txn) }) {
+        $txn->delete($table => $id);
     }
+
+    $txn->commit;
 
     return;
 }
 
 sub __all_ids {
-    my ($schema, $table) = @_;
+    my ($schema, $table, $handler) = @_;
 
-    return [ map { $_->id } ( $schema->get($table => {} ) ) ];
+    $handler ||= $schema;
+
+    return [ map { $_->id } ( $handler->get($table => {} ) ) ];
 }
 
 sub __alias_to_real {

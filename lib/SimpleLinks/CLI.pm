@@ -1,25 +1,39 @@
-package SimpleLinks::Web::Model::Links;
+package SimpleLinks::CLI;
 
 
 # ****************************************************************
-# MOP
+# pragmas
 # ****************************************************************
 
-use Ark 'Model::Adaptor';   # automatically turn on strict & warnings
+use strict;
+use warnings;
 
-__PACKAGE__->config(
-    class    => 'SimpleLinks::Service::Links',
-    args     => {
+
+# ****************************************************************
+# internal dependencies
+# ****************************************************************
+
+use SimpleLinks::Service::Links;
+
+
+# ****************************************************************
+# class methods
+# ****************************************************************
+
+sub get_service {
+    my ($class, $dbname) = @_;
+
+    return SimpleLinks::Service::Links->new({
         schema_factory => 'Faktro::Schema::Factory',
         connect_info   => {
             backend     => 'SQLite',
             model_class => 'SimpleLinks::Schema::Table',
             dsn_options => {
-                dbname => SimpleLinks::Web->config->{dbname},
+                dbname => $dbname,
             },
         },
-    },
-);
+    });
+}
 
 
 # ****************************************************************
@@ -36,7 +50,7 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::Model::Links - 
+SimpleLinks::CLI - 
 
 
 =head1 SYNOPSIS
@@ -49,13 +63,21 @@ SimpleLinks::Web::Model::Links -
 blah blah blah
 
 
+=head1 METHODS
+
+=head2 get_service
+
+インターフェース（Web, CLI, テストなど）に共通するサービスオブジェクトを取得します。
+このクラスはCLIですが、L<SimpleLinks::Web::Model::Links|SimpleLinks::Web::Model::Links>との差分は、L<Ark::Model|Ark::Model>に関係する箇所のみです。
+
+
 =head1 SEE ALSO
 
 =over 4
 
-=item Command line interface (CLI)
+=item Web interface
 
-L<< SimpleLinks::CLI->get_service|SimpleLinks::CLI/"get_service" >>
+L<SimpleLinks::Web::Model::Links|SimpleLinks::Web::Model::Links>
 
 =back
 
