@@ -6,7 +6,7 @@ package SimpleLinks::Web::View::JSON;
 
 use Ark 'View::JSON';
 
-# Ark::View::Serializer‚ð‘‚­‚©‚àBYAML, JSON, XML•Ó‚èB
+# Ark::View::Serializerã‚’æ›¸ãã‹ã‚‚ã€‚YAML, JSON, XMLè¾ºã‚Šã€‚
 
 no Ark;
 __PACKAGE__->meta->make_immutable;
