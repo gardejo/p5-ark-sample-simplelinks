@@ -1,21 +1,57 @@
-package SimpleLinks::Web::View::YAML;
+package Faktro::Schema::Factory::SQLite;
+
+
+# ****************************************************************
+# class variables
+# ****************************************************************
+
+our $VERSION = '0.00_00';
+
 
 # ****************************************************************
 # MOP
 # ****************************************************************
 
-use Ark 'View::YAML';
+use Any::Moose;             # automatically turn on strict & warnings
 
-# Ark::View::Serializerを書くかも。YAML, JSON, XML辺り。
+extends qw(
+    Faktro::Schema::Factory::DBI
+);
 
-no Ark;
+has '+dbd' => (
+    default     => 'SQLite',
+);
+
+no Any::Moose;
 __PACKAGE__->meta->make_immutable;
 
 
 # ****************************************************************
-# miscellaneous methods
+# initializations
 # ****************************************************************
 
+sub create_table {
+    my ($self, $option) = @_;
+
+    return
+        if ! defined $self->dsn_options->{dbname}
+        || -f $self->dsn_options->{dbname};
+
+    my $dbh = DBI->connect(
+        $self->dsn,
+        q{},
+        q{},
+        { RaiseError => 1, PrintError => 1, }
+    );
+    # $dbh->{unicode} = 1;
+
+    foreach my $sql ($self->_model->as_sqls) {
+        $dbh->do($sql);
+    }
+    $dbh->disconnect;
+
+    return;
+}
 
 
 # ****************************************************************
@@ -32,12 +68,17 @@ __END__
 
 =head1 NAME
 
-SimpleLinks::Web::View::JSON - 
+Faktro::Schema::Factory::SQLite - concrete (SQLite) schema factory class for Data::Model
+
+
+=head1 VERSION
+
+0.00_00
 
 
 =head1 SYNOPSIS
 
-    # blah blah blah
+    blah blah blah
 
 
 =head1 DESCRIPTION

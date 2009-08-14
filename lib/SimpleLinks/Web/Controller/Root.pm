@@ -43,14 +43,13 @@ sub index : Path Args(0) {
         my $model   = $c->model('Links');
         my $website = $model->lookup( website => 1 );
 
-        use YAML::Any;
-        use Encode;
-        $c->res->header(content_type => 'text/plain; charset=UTF-8');
-        $c->res->body(Encode::decode_utf8(Dump $website));
+        $c->forward( $c->view('YAML')->dump($website) );
+        # $c->forward( $c->view('JSON')->dump($website) );
 
         # $c->res->body('Ark Default Index');
     };
     if (catch my $exception) {
+        print $exception;
         $c->res->status(500);
         $c->view('MT')->template('errors/500');
     }

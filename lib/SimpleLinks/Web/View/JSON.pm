@@ -1,13 +1,15 @@
 package SimpleLinks::Web::View::JSON;
 
-use strict;
-use warnings;
-
-
 # ****************************************************************
 # MOP
 # ****************************************************************
 
+use Ark 'View::JSON';
+
+# Ark::View::Serializer‚ð‘‚­‚©‚àBYAML, JSON, XML•Ó‚èB
+
+no Ark;
+__PACKAGE__->meta->make_immutable;
 
 
 # ****************************************************************

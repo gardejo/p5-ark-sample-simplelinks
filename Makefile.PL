@@ -35,18 +35,21 @@ build_requires  'Module::Load'          => '0';     # > perl 5.009_004
 perl_version_from $application_root_module;
 # requires      'Any::Moose'            => '0';     # > Ark > HTTP::Engine
   requires      'Ark'                   => '0.001000_002'; # from GitHub
+# requires      'Ark::View::YAML'       => '0';     # (extlib)
 # requires      'Carp'                  => '0';     # > perl 5
 # requires      'Data::Dumper'          => '0';     # > perl 5.005;
   requires      'Data::Model'           => '0.00003';
 # requires      'Data::Model::Mixin::FindOrCreate' => '0'; # > Data::Model
+# requires      'Data::Util'            => '0';     # > Ark
 # requires      'DBD::SQLite'           => '0';     # > Data::Model
 # requires      'DBI'                   => '0';     # > Data::Model
 # requires      'DateTime'              => '0';     # > HTTP::Engine::Middleware
+  requires      'DateTime::Format::MySQL' => '0';
 # requires      'Encode'                => '1.9801'; # > perl 5.008_001
 # requires      'English'               => '0';     # > perl 5
-  requires      'DateTime::Format::MySQL' => '0';
 # requires      'Exception::Class'      => '0';     # > E::C::TryCatch
   requires      'Exception::Class::TryCatch' => '0';
+# requires      'Faktro::Schema::Factory::SQLite' => '0'; # (extlib)
 # requires      'Filter::Util::Call'    => '0';     # (requires implicitly)
 # requires      'FindBin'               => '0';     # > perl 5.003_07
 # requires      'FindBin::libs'         => '0';     # > Ark
@@ -70,9 +73,6 @@ perl_version_from $application_root_module;
 # requires      'URI'                   => '0';     # > Ark
   requires      'local::lib'            => '0';
 
-# Note: I want replace code with Scalar::Util as with Data::Util
-#       because it interest me in is_number() as alternate looks_like_number().
-
 # ================================================================
 # optional dependencies
 # ================================================================
@@ -84,6 +84,7 @@ features(
     'Support JSON format for dump' => [
         -default    => 0,
         recommends( 'JSON::Any'         => '0' ),
+        recommends( 'Data::Structure::Util' => '0' ), # unbless
     ],
     'Support Markdown format for comment' => [
         -default    => 0,
