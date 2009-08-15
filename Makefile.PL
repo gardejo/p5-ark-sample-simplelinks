@@ -19,7 +19,6 @@ resources (
     bugtracker  => 'http://github.com/gardejo/p5-ark-sample-simplelinks/issues',
     homepage    => 'http://blog.eorzea.asia/2009/07/post_35.html',
 );
-# use lib 'extlib';
 no_index directory => 'examples';
 no_index directory => 'extlib';
 
@@ -129,10 +128,10 @@ features(
 # dependencies for author tests
 # plan skip_all => 'xxxx required for testing xxxx' if ...
 # ================================================================
+# test_requires 'Perl::Critic'          => '1.094';     # for equivalent_modules
 # test_requires 'Test::NoTabs'          => '0';
 # test_requires 'Test::Output'          => '0';
-# test_requires 'Test::Perl'            => '0';                                 
-# test_requires 'Perl::Critic'          => '1.094';     # for equivalent_modules
+# test_requires 'Test::Perl'            => '0';
 # test_requires 'Test::Pod'             => '0';
 # test_requires 'Test::Pod::Coverage'   => '0';
 # test_requires 'Test::Spelling'        => '0';
@@ -166,7 +165,7 @@ __END__
 
 =head1 NAME
 
-Makefile.PL - Makefile builder
+Makefile.PL - Makefile builder for p5-ark-sample-simplelinks
 
 
 =head1 SYNOPSIS

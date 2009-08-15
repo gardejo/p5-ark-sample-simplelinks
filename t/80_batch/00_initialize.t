@@ -24,14 +24,22 @@ my $query_path
     = 'examples/app/p5-ark-sample-simplelinks/SimpleLinks.data.yml';
 ok( -f $query_path, sprintf 'query file (%s) exists', $query_path );
 
-my @implementations = YAML::Any->order;
+my @implementation_candidates = YAML::Any->order;
 
 IMPLEMENTATION:
-foreach my $implementation (@implementations) {
-    local @YAML::Any::_TEST_ORDER = ($implementation);
-    if ($implementation ne YAML::Any->implementation) {
-        diag sprintf 'module (%s) was skipped', $implementation;
-        next IMPLEMENTATION;
+foreach my $implementation_candidate (@implementation_candidates) {
+    local @YAML::Any::_TEST_ORDER = ($implementation_candidate);
+    my $implementation;
+
+    {
+        local $EVAL_ERROR;
+        eval {
+            $implementation = YAML::Any->implementation;
+        };
+        if ($EVAL_ERROR || $implementation_candidate ne $implementation) {
+            diag sprintf 'module (%s) was skipped', $implementation_candidate;
+            next IMPLEMENTATION;
+        }
     }
 
     my $query;
