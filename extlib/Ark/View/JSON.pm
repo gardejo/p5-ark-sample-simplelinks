@@ -61,10 +61,10 @@ sub render {
         convert_blessed => 1,
         allow_blessed   => 1,
     );
-    $json->objToJson( unbless_recursively( dclone( $data ) ) );
+    $json->objToJson( _unbless_recursively( dclone( $data ) ) );
 }
 
-sub unbless_recursively {
+sub _unbless_recursively {
     my $data = shift;
 
     if (blessed $data) {
@@ -76,7 +76,7 @@ sub unbless_recursively {
         foreach (@$data) {
             next ELEMENT
                 unless defined $_;
-            unbless_recursively( $_ );
+            _unbless_recursively( $_ );
         }
     }
     elsif (is_hash_ref($data)) {
@@ -84,7 +84,7 @@ sub unbless_recursively {
         foreach my $key (keys %$data) {
             next KEY
                 unless defined $data->{$key};
-            $data->{$key} = unbless_recursively( $data->{$key} );
+            $data->{$key} = _unbless_recursively( $data->{$key} );
         }
     }
     elsif (is_scalar_ref($data)) {

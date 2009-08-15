@@ -78,7 +78,7 @@ Faktro::Schema::Factory::SQLite - concrete (SQLite) schema factory class for Dat
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION

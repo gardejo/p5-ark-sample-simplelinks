@@ -59,7 +59,7 @@ Faktro::Schema::Factory - abstract factory class for schema of Data::Model
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION

@@ -127,7 +127,7 @@ Faktro::Schema::Factory::DBI - abstract DBI factory class for schema of Data::Mo
 
 =head1 SYNOPSIS
 
-    blah blah blah
+    # blah blah blah
 
 
 =head1 DESCRIPTION
